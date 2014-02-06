@@ -14,7 +14,7 @@ class WorkQueue:
 	def append(self, item):
 		return self.jobQ.append(item)
 
-	def prepend(self, item):
+	def prepend(self, item): #needed?
 		return self.jobQ.appendleft(item)
 
 	def pop(self):
@@ -28,20 +28,3 @@ class WorkQueue:
 
 	def jobNotDone(item):
 		return self.jobQ.appendleft(item)
-
-	"""
-	def jobDone(self, item):
-		self.underwayJobs = [(self.underwayJobs[i] if (self.underwayJobs[i][0] != item)) \
-		for i in range(len(self.underwayJobs))]
-
-	#checks if job has been completed, decrements time, if time is done
-	#adds back to queue
-	def checkAck(self):
-		self.underwayJobs = [(self.underwayJobs[i][0], self.underwayJobs[i][1] - 15.0) \
-		for i in range(len(self.underwayJobs))]
-		
-		for i in range(len(self.underwayJobs)-1, -1, -1):
-			if(self.underwayJobs[i][1] <= 0.0):
-				self.jobQ.appendleft(self.underwayJobs.pop(i))
-	"""
-
