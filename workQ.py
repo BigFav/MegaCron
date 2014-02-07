@@ -18,8 +18,10 @@ class WorkQueue:
 		return self.jobQ.appendleft(item)
 
 	def pop(self):
+		#wrap in try
 		elem = self.jobQ.popleft()
 		timer = Timer(60.0, jobNotDone, [elem])
+		timer.start()
 		return (elem, timer)
 
 	def jobDone(self, timer):
