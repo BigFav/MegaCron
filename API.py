@@ -11,11 +11,11 @@ class Job:
         self.lastTimeRun = lastTimeRun
 
 class Schedule:
-    def __init__(self, timeToRun, job, completedTime, worker=None):
+    def __init__(self, timeToRun, job, worker=None, completedTime=None):
         self.timeToRun = timeToRun
         self.job = job
-        self.completedTime = completedTime
         self.worker = worker
+        self.completedTime = completedTime
 
 class Worker:
     def __init__(self, heartbeat, id=None):
@@ -28,6 +28,10 @@ class Worker:
 def getJobs():
     return __readFile()['jobs']
 
+def getJobs(userId):
+    return [job for job in jobs if job.userId == userId]
+
+
 def setJobs(jobs):
     file = __readFile()
 
@@ -37,7 +41,7 @@ def setJobs(jobs):
 
 def getSchedules(worker):
     schedules = __readFile()['schedules']
-    return [schedule for schedule in schedules if schedule.worker != worker]
+    return [schedule for schedule in schedules if schedule.worker == worker]
 
 def addSchedules(schedules):
     file = __readFile()
