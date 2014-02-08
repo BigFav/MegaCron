@@ -6,9 +6,11 @@ import time
 import string
 import os
 import subprocess
+from API.py import getJobs
+from API.py import setJobs
 
-uid = os.getuid()
-schedules = DATABASE.getSchedules(uid)
+uid = str(os.getuid())
+jobs_c = getJobs(uid)
 tbfile = "crontab.tab"
 with open(tbfile, 'w') as tab:
 	for schedule in schedules:
@@ -20,20 +22,14 @@ if editor:
 else:
 	subprocess.call("vim %s" % tbfile, shell=True)
 
-jobs = CronTab(tabfile=tbfile)
-cron_schedules = [job.schedule(date_from=datetime.now()) for job in jobs]
-jobs = map(str, jobs)
-schedules = []
-for job in jobs:
+
+jobs_c = CronTab(tabfile=tbfile)
+jobs_c = map(str, jobs_c)
+jobs = []
+for job in jobs_c:
 	tmp = job.split(' ')
 	interval = string.joinfields(tmp[:5], ' ')
 	cmd = string.joinfields(tmp[5:], ' ')
-	schedule = schedule()
-	schedule.interval = interval
-	schedule.command = cmd
-	schedule.userId = uid
-	schedule.next_attempt = cron_schedules[i].get_next()
-	schedules.append(schedule)
+	jobs.append(Job(interval, cmd, uid))
 
-DATABASE.setSchedules(schedules, uid)
-
+setJobs(jobs)
