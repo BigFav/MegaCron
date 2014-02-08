@@ -1,4 +1,8 @@
 from crontab import CronTab
+from croniter import croniter
+from datetime import datetime
+from datetime import timedelta
+import time
 import string
 import os
 import subprocess
@@ -17,6 +21,7 @@ else:
 	subprocess.call("vim %s" % tbfile, shell=True)
 
 jobs = CronTab(tabfile=tbfile)
+cron_schedules = [job.schedule(date_from=datetime.now()) for job in jobs]
 jobs = map(str, jobs)
 schedules = []
 for job in jobs:
@@ -26,6 +31,8 @@ for job in jobs:
 	schedule = schedule()
 	schedule.interval = interval
 	schedule.command = cmd
+	schedule.userId = uid
+	schedule.next_attempt = cron_schedules[i].get_next()
 	schedules.append(schedule)
 
 DATABASE.setSchedules(schedules, uid)
