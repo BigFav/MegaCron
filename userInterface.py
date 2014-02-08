@@ -4,7 +4,7 @@ import os
 import subprocess
 
 uid = os.getuid()
-schedules = DATABASE.get(uid)
+schedules = DATABASE.getSchedules(uid)
 tbfile = "crontab.tab"
 with open(tbfile, 'w') as tab:
 	for schedule in schedules:
