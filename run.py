@@ -2,7 +2,6 @@ from crontab import CronTab
 from croniter import croniter
 from datetime import datetime
 from datetime import timedelta
-#import WorkQueue
 import time
 import string
 import subprocess
@@ -10,8 +9,7 @@ import subprocess
 def preprocessJob (job):
 	return string.joinfields(job.split(' ')[5:], ' ')
 
-ft_ext = { 'sh':'bash', 'py':'', 'pl':'perl', '':'' } #supports bash, python, perl, and single commands 
-def preprocessExt (job):
+def preprocessExt (job, ft_ext):
 	return ft_ext[job.split('/')[-1].partition('.')[2][:2]]
 
 
@@ -20,12 +18,17 @@ jobs = CronTab(tabfile='crontab.tab')
 count = len(jobs)
 schedules = [job.schedule(date_from=datetime.now()) for job in jobs]
 jobs = map(str, jobs)
-jobs = map(preprocessJob, jobs)
-typs = map(preprocessExt, jobs)
-args = ["%s %s" % (typ, job) for (typ, job) in zip(typs, jobs)]
+ft_ext = { 'sh':'bash', 'py':'python', 'pl':'perl', '':'' } #supports bash, python, perl, and single commands
+args = []
+for job in jobs:
+	job = string.joinfields(job.split(' ')[5:], ' ')
+	typ = ""
+	if job[:7] != "python ":
+		typ = ft_ext[job.split('/')[-1].partition('.')[2][:2]]
+	print "%s %s" % (typ, job)
+	args.append("%s %s" % (typ, job))
 nxt = [schedule.get_next() for schedule in schedules]
 
-#workQ = WorkQueue()
 while True:
 	gaps = []
 	for i in range(count):
