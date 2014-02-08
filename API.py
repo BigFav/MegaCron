@@ -29,8 +29,8 @@ def getJobs():
     return __readFile()['jobs']
 
 def getJobs(userId):
+    jobs = __readFile()['jobs']
     return [job for job in jobs if job.userId == userId]
-
 
 def setJobs(jobs):
     file = __readFile()
