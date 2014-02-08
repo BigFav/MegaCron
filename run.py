@@ -19,14 +19,13 @@ count = len(jobs)
 schedules = [job.schedule(date_from=datetime.now()) for job in jobs]
 jobs = map(str, jobs)
 ft_ext = { 'sh':'bash', 'py':'python', 'pl':'perl', '':'' } #supports bash, python, perl, and single commands
-args = []
+cmds = []
 for job in jobs:
 	job = string.joinfields(job.split(' ')[5:], ' ')
 	typ = ""
 	if job[:7] != "python ":
 		typ = ft_ext[job.split('/')[-1].partition('.')[2][:2]]
-	print "%s %s" % (typ, job)
-	args.append("%s %s" % (typ, job))
+	cmds.append("%s %s" % (typ, job))
 nxt = [schedule.get_next() for schedule in schedules]
 
 while True:
@@ -37,7 +36,7 @@ while True:
 		gaps.append(gap)
 		#Could probably map this so it's faster
 		if abs(gap) < 1:
-			subprocess.call(args[i], shell=True) #this gets replaced
+			subprocess.call(cmds[i], shell=True) #this gets replaced
 			nxt[i] = schedules[i].get_next()
 		elif gap < 0:
 			nxt[i] = schedules[i].get_next()
