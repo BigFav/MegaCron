@@ -5,6 +5,8 @@ from datetime import timedelta
 import time
 import API
 
+SCHEDULER_UPDATE_INTERVAL = timedelta(minutes=15)
+
 def sortSchedules (schedules):
 
 	return schedules.sort(key=lambda schedule: schedule.timeToRun, reverse=False)
@@ -42,5 +44,5 @@ while True:
 
 	API.addSchedule(schedules)
 
- 	time.sleep(3600)													#so your processor doesn't explode
+ 	time.sleep(SCHEDULER_UPDATE_INTERVAL)													#so your processor doesn't explode
 
