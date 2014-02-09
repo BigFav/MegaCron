@@ -18,7 +18,6 @@ def runSchedules(worker):
     if nextSchedulesUpdateTime <= datetime.now():
         schedules = API.getSchedules(worker)
         nextSchedulesUpdateTime = datetime.now() + SCHEDULES_UPDATE_INTERVAL
-    print len(schedules)
     if len(schedules) > 0:
         schedule = schedules.pop()
         secondsToSleep = (schedule.timeToRun - datetime.now()).total_seconds()
@@ -27,9 +26,7 @@ def runSchedules(worker):
 
         if schedule.timeToRun <= datetime.now():
             subprocess.call(schedule.job.command, shell=True)
-            print "Should see ZERO!!!!"
             API.removeSchedule(schedule) #Why does this not work?!?!?!
-            print len(API.getSchedules(worker))
     else:
         time.sleep(SCHEDULES_UPDATE_INTERVAL.total_seconds())
 

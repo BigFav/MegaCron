@@ -28,17 +28,12 @@ def jobs2Schedules (jobs):
 		cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
 		
 		nxt = cmd_sch.get_next()
-                print "%s %s" % (job.interval,job.command)
-		print nxt
-		print (nxt - datetime.now()).total_seconds() 
 		while (nxt - datetime.now()).total_seconds() < SCHEDULER_UPDATE_INTERVAL:
-		    print "here"	
 		    job.lastTimeRun = nxt
 		    schedule = API.Schedule(nxt, job, worker=None)
 		    schedules.append(schedule)
                     API.setJobTime(job)
 		    nxt = cmd_sch.get_next()
-	print schedules
 	return schedules
 
 
@@ -47,7 +42,6 @@ while True:
 	jobs = API.getJobs()
 	
 	schedules = sortSchedules(jobs2Schedules(jobs))
-	print schedules
 	workers = API.getWorkers()
 	
 	for schedule in schedules:
