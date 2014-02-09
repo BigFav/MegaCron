@@ -103,13 +103,13 @@ def getWorkers():
 def createWorker():
     file = __readFile()
     id = file['nextWorkerId']
-
-    file['workers'].append(Worker(datetime.now(), id))
+    worker = Worker(datetime.now(), id)
+    file['workers'].append(worker)
     file['nextWorkerId'] += 1
     
     __writeFile(file)
 
-    return id
+    return worker
 
 def __readFile():
     try:
