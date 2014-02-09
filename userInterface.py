@@ -1,21 +1,28 @@
+import sys
 import string
 import subprocess
 import os
 from crontab import CronTab
 import API
 
-uid = str(os.getuid())
-jobs_old = API.getJobsForUser(uid)
-tbfile = "crontab.tab"
-with open(tbfile, 'w') as tab:
-	for job in jobs_old:
-		tab.write("%s %s\n" % (job.interval, job.command))
 
-editor = os.getenv('EDITOR')
-if editor:
-	os.system("%s %s" % (editor, tbfile))
-else:
-	subprocess.call("vim %s" % tbfile, shell=True)
+
+uid = str(os.getuid())
+
+if len(sys.argv) < 3:
+	tbfile = "crontab.tab"
+	jobs_old = API.getJobsForUser(uid)
+	with open(tbfile, 'w') as tab:
+		for job in jobs_old:
+			tab.write("%s %s\n" % (job.interval, job.command))
+
+	editor = os.getenv('EDITOR')
+	if editor:
+		os.system("%s %s" % (editor, tbfile))
+	else:
+		subprocess.call("vim %s" % tbfile, shell=True)
+elif sys.argv[1] == '-u':
+	tbfile = sys.argv[2]
 
 
 jobs_old = CronTab(tabfile=tbfile)
