@@ -3,41 +3,52 @@ from croniter import croniter
 from datetime import datetime
 from datetime import timedelta
 import time
-import string
-import subprocess
+import API
 
-def preprocessJob (job):
-	return string.joinfields(job.split(' ')[5:], ' ')
+SCHEDULER_UPDATE_INTERVAL = timedelta(minutes=15).total_seconds()
 
-def preprocessExt (job, ft_ext):
-	return ft_ext[job.split('/')[-1].partition('.')[2][:2]]
+def sortSchedules (schedules):
+
+	schedules.sort(schedules.sort(key=lambda schedule: schedule.timeToRun, reverse=False))
+
+	return schedules
 
 
-jobs = CronTab(tabfile='crontab.tab')
-#check if jobs are valid!!!!!
-count = len(jobs)
-schedules = [job.schedule(date_from=datetime.now()) for job in jobs]
-jobs = map(str, jobs)
-ft_ext = { 'sh':'bash', 'py':'python', 'pl':'perl', '':'' } #supports bash, python, perl, and single commands
-cmds = []
-for job in jobs:
-	job = string.joinfields(job.split(' ')[5:], ' ')
-	typ = ""
-	if job[:7] != "python ":
-		typ = ft_ext[job.split('/')[-1].partition('.')[2][:2]]
-	cmds.append("%s %s" % (typ, job))
-nxt = [schedule.get_next() for schedule in schedules]
+def jobs2Schedules (jobs):
+
+	schedules = []
+
+	while (len(jobs) > 0):
+		
+		job = jobs.pop()
+		
+		cmd = CronTab(tab="%s %s" % (job.interval, job.command))		#these two lines
+		command = cmd.crons.pop()
+		cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
+		
+		next = cmd_sch.get_next()
+
+		schedule = API.Schedule(next, job, worker=None, completedTime=None)
+	 	schedules.append(schedule)
+
+	return schedules
+
 
 while True:
-	gaps = []
-	for i in range(count):
-		delta = nxt[i] - datetime.now()
-		gap = delta.total_seconds()
-		gaps.append(gap)
-		#Could probably map this so it's faster
-		if abs(gap) < 1:
-			subprocess.call(cmds[i], shell=True) #this gets replaced
-			nxt[i] = schedules[i].get_next()
-		elif gap < 0:
-			nxt[i] = schedules[i].get_next()
-	time.sleep(int(min(gaps))) #so your processor doesn't explode
+
+	jobs = API.getJobs()
+	
+	schedules = sortSchedules(jobs2Schedules(jobs))
+
+	workers = API.getWorkers()
+	
+	worker = workers.pop()
+	
+	for schedule in schedules:
+
+		schedule.worker = worker
+
+	API.addSchedules(schedules)
+
+ 	time.sleep(SCHEDULER_UPDATE_INTERVAL)								#so your processor doesn't explode
+

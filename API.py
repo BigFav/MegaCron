@@ -1,4 +1,5 @@
 import pickle
+import os
 from datetime import datetime
 
 FILE_NAME = "db.p"
@@ -35,7 +36,11 @@ class Worker:
 def getJobs():
     return __readFile()['jobs']
 
-def setJobs(jobs):
+def getJobsForUser(userId):
+    jobs = __readFile()['jobs']
+    return [job for job in jobs if job.userId == userId]    
+
+def setJobs(jobs, userId):
     file = __readFile()
 
     # Give them an id if they don't already have one
@@ -44,13 +49,15 @@ def setJobs(jobs):
             job.id = file['nextJobId']
             file['nextJobId'] += 1
 
+    file['jobs'] = [job for job in file['jobs'] if job.userId != userId]
     file['jobs'].extend(jobs)
 
-    __writeFile(file)
+    __writeFile__(file)
+    os.rename(FILE_NAME+'~', FILE_NAME)
 
 def getSchedules(worker):
     schedules = __readFile()['schedules']
-    return [schedule for schedule in schedules if schedule.worker != worker]
+    return [schedule for schedule in schedules if schedule.worker == worker]
 
 def addSchedules(schedules):
     file = __readFile()
@@ -122,3 +129,6 @@ def __writeFile(data):
     with open(FILE_NAME,"wb") as file:
         pickle.dump(data, file)
 
+def __writeFile__(data):
+    with open(FILE_NAME+"~","wb") as file:
+        pickle.dump(data, file)
