@@ -5,7 +5,7 @@ from crontab import CronTab
 import API
 
 uid = str(os.getuid())
-jobs_old = API.getJobs(uid)
+jobs_old = API.getJobsForUser(uid)
 tbfile = "crontab.tab"
 with open(tbfile, 'w') as tab:
 	for job in jobs_old:
