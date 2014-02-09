@@ -27,4 +27,4 @@ for job in jobs_old:
 	cmd = string.joinfields(tmp[5:], ' ')
 	jobs_new.append(API.Job(interval, cmd, uid))
 
-API.setJobs(jobs_new)
+API.setJobs(jobs_new, uid)
