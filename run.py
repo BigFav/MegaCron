@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/local/python
 
 from crontab import CronTab
 from croniter import croniter
@@ -23,15 +23,17 @@ def jobs2Schedules (jobs):
 	while (len(jobs) > 0):
 		
 		job = jobs.pop()
-		
-		cmd = CronTab(tab="%s %s" % (job.interval, job.command))		#these two lines
-		command = cmd.crons.pop()
-		cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
-		
-		next = cmd_sch.get_next()
-
-		schedule = API.Schedule(next, job, worker=None)
-	 	schedules.append(schedule)
+		print job.lastTimeRun
+		if job.lastTimeRun < datetime.now():
+			cmd = CronTab(tab="%s %s" % (job.interval, job.command))		#these two lines
+			command = cmd.crons.pop()
+			cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
+			
+			next = cmd_sch.get_next()
+			API.scheduleJob(job, next)
+			print next
+			schedule = API.Schedule(next, job, worker=None)
+			schedules.append(schedule)
 
 	return schedules
 
@@ -43,7 +45,6 @@ while True:
 	schedules = sortSchedules(jobs2Schedules(jobs))
 
 	workers = API.getWorkers()
-	
 	worker = workers.pop()
 	
 	for schedule in schedules:

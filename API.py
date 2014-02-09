@@ -5,7 +5,7 @@ from datetime import datetime
 FILE_NAME = "db.p"
 
 class Job:
-    def __init__(self, interval, command, userId, lastTimeRun=None, id=None):
+    def __init__(self, interval, command, userId, lastTimeRun, id=None):
         self.interval = interval
         self.command = command
         self.userId = userId
@@ -54,6 +54,14 @@ def setJobs(jobs, userId):
 
     __writeFile__(file)
     os.rename(FILE_NAME+'~', FILE_NAME)
+
+def scheduleJob(job, time):
+    file = __readFile()
+    
+    index = file['jobs'].index(job)
+    file['jobs'][index].lastTimeRun = time
+
+    __writeFile(file) #Most suspect part, would ask Marc if I need ~
 
 def getSchedules(worker):
     schedules = __readFile()['schedules']
