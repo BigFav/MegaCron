@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-
 import pickle
 import os
 from datetime import datetime
