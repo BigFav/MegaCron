@@ -1,5 +1,6 @@
 import pickle
 import os
+import fcntl
 from datetime import datetime
 
 FILE_NAME = "db.p"
@@ -52,19 +53,26 @@ def setJobs(jobs, userId):
     file['jobs'] = [job for job in file['jobs'] if job.userId != userId]
     file['jobs'].extend(jobs)
 
-    __writeFile__(file)
-    os.rename(FILE_NAME+'~', FILE_NAME)
+    __writeFile(file)
 
-def scheduleJob(job, time):
-    file = __readFile()
-    
-    index = file['jobs'].index(job)
-    file['jobs'][index].lastTimeRun = time
+def setJobTime(job):
+   
+    f = open(FILE_NAME, "r+b")
+    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+    file = pickle.load(f)
 
-    __writeFile(file) #Most suspect part, would ask Marc if I need ~
+    for f_job in file['jobs']:
+        if f_job.id == job.id:
+            f_job.lastTimeRun = job.lastTimeRun
+            break
+
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    pickle.dump(file, f)
+    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    f.close()
 
 def getSchedules(worker):
-    schedules = __readFile()['schedules']
+    schedules = __readFileL()['schedules']
     return [schedule for schedule in schedules if schedule.worker == worker]
 
 def addSchedules(schedules):
@@ -80,12 +88,33 @@ def addSchedules(schedules):
 
     __writeFile(file)
 
+def addSchedule(schedule):
+    f = open(FILE_NAME, "r+b")
+    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+    file = pickle.load(f)
+
+    file['schedules'].append(schedule)
+
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    pickle.dump(file, f)
+    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    f.close() 
+
+
 def removeSchedule(schedule):
-    file = __readFile()
+    f = open(FILE_NAME, "rb")
+    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+    file = pickle.load(f)
+    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    f.close()
 
     file['schedules'].remove(schedule)
 
-    __writeFile(file)
+    f = open(FILE_NAME, "wb")
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    pickle.dump(file, f)
+    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    f.close() 
 
 def getHeartbeat(worker):
     workers = __readFile()['workers']
@@ -134,9 +163,44 @@ def __readFile():
         }
 
 def __writeFile(data):
-    with open(FILE_NAME,"wb") as file:
+    with open(FILE_NAME+'~',"wb") as file:
         pickle.dump(data, file)
+    os.rename(FILE_NAME+'~', FILE_NAME)
 
-def __writeFile__(data):
-    with open(FILE_NAME+"~","wb") as file:
-        pickle.dump(data, file)
+def __readFileL():
+    try:
+        file = open(FILE_NAME, "rb")
+	fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+	load = pickle.load(file)
+	fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+	file.close()
+	return load
+    except IOError:
+        return {
+            'jobs': [],
+            'schedules': [],
+            'workers': [],
+            'nextJobId': 1,
+            'nextScheduleId': 1,
+            'nextWorkerId': 1
+        }
+
+def __writeFileL(data):
+    file = open(FILE_NAME, "wb")
+    fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+    pickle.dump(data, file)
+    fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+    file.close()
+
+def __rwFileL(f, data):
+    fd = open(FILE_NAME, "r+b")
+    fcntl.flock(fd.fileno(), fcntl.LOCK_SH)
+    file = pickle.load(fd)
+
+    f(file, data)
+
+    fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+    pickle.dump(file, fd)
+    fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+    fd.close() 
+
