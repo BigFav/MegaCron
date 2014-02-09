@@ -5,32 +5,40 @@ from datetime import timedelta
 import time
 import API
 
+SCHEDULER_UPDATE_INTERVAL = timedelta(minutes=15).total_seconds()
+
 def sortSchedules (schedules):
 
-	return schedules.sort(key=lambda schedule: schedule.timeToRun, reverse=False)
+	schedules.sort(schedules.sort(key=lambda schedule: schedule.timeToRun, reverse=False))
+
+	return schedules
 
 
 def jobs2Schedules (jobs):
 
 	schedules = []
 
-	while (len(jobs) > 0)):
+	while (len(jobs) > 0):
 		
 		job = jobs.pop()
 		
-		cmd = CronTab(tab="%s %s" % (job.interval, job.command)			#these two lines
-		cmd_sch = cmd.getSchedule(date_from=datetime.now())				#allow us to obtain next timeToRun
+		cmd = CronTab(tab="%s %s" % (job.interval, job.command))		#these two lines
+		command = cmd.crons.pop()
+		cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
 		
-		schedule = API.schedule(cmd_sch.get_next, job, worker=None, completedTime=None)
-		
+		next = cmd_sch.get_next()
+
+		schedule = API.Schedule(next, job, worker=None, completedTime=None)
 	 	schedules.append(schedule)
 
-	 return schedules
+	return schedules
 
 
 while True:
 
-	schedules = sortSchedules(jobs2Schedules(API.getJobs()))
+	jobs = API.getJobs()
+	
+	schedules = sortSchedules(jobs2Schedules(jobs))
 
 	workers = API.getWorkers()
 	
@@ -40,7 +48,7 @@ while True:
 
 		schedule.worker = worker
 
-	API.addSchedule(schedules)
+	API.addSchedules(schedules)
 
- 	time.sleep(3600)													#so your processor doesn't explode
+ 	time.sleep(SCHEDULER_UPDATE_INTERVAL)								#so your processor doesn't explode
 
