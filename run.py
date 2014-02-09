@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+
 from crontab import CronTab
 from croniter import croniter
 from datetime import datetime
@@ -5,7 +7,7 @@ from datetime import timedelta
 import time
 import API
 
-SCHEDULER_UPDATE_INTERVAL = timedelta(minutes=15).total_seconds()
+SCHEDULER_UPDATE_INTERVAL = timedelta(seconds=15).total_seconds()
 
 def sortSchedules (schedules):
 
@@ -28,7 +30,7 @@ def jobs2Schedules (jobs):
 		
 		next = cmd_sch.get_next()
 
-		schedule = API.Schedule(next, job, worker=None, completedTime=None)
+		schedule = API.Schedule(next, job, worker=None)
 	 	schedules.append(schedule)
 
 	return schedules
