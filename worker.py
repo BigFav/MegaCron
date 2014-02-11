@@ -14,8 +14,7 @@ nextSchedulesUpdateTime = datetime.now()
 
 def signal_handler(signal, frame):
     global worker
-    if worker:
-        API.destroyWorker(worker)
+    API.destroyWorker(worker)
     sys.exit(0)
 
 def runSchedules(worker):
