@@ -42,10 +42,11 @@ while True:
 	
 	schedules = sortSchedules(jobs2Schedules(jobs))
 	workers = API.getWorkers()
-	
-	for schedule in schedules:
-		worker = workers.pop()
-		schedule.worker = worker
+
+	if len(workers) | 0:	
+		for schedule in schedules:
+			worker = workers.pop()
+			schedule.worker = worker
 
 	API.addSchedules(schedules)
 
