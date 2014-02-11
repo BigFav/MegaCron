@@ -61,7 +61,6 @@ def setJobFun(file, job):
             f_job.lastTimeRun = job.lastTimeRun
             return
 
-#should be atomic?
 def setJobTime(job):
     __rwFileL(setJobFun, job)
 
@@ -112,18 +111,24 @@ def updateHeartbeat(worker):
     __writeFile(file)
 
 def getWorkers():
-    return __readFile()['workers']
+    return __readFileL()['workers']
 
-def createWorker():
-    file = __readFile()
+def createWorkerFun(file, null):
     id = file['nextWorkerId']
     worker = Worker(datetime.now(), id)
     file['workers'].append(worker)
     file['nextWorkerId'] += 1
-
-    __writeFile(file)
-
+  
     return worker
+
+def createWorker():
+    return __rwFileL(createWorkerFun, "")
+
+def destroyWorkerFun(file, worker):
+    file['workers'].remove(worker)
+
+def destroyWorker(worker):
+    __rwFileL(destroyWorkerFun, worker)
 
 def __readFile():
     try:
@@ -147,7 +152,7 @@ def __writeFile(data):
 def __readFileL():
     try:
         file = open(FILE_NAME, "rb")
-	fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+	fcntl.flock(file.fileno(), fcntl.LOCK_EX)
 	load = pickle.load(file)
 	fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 	file.close()
@@ -169,19 +174,16 @@ def __writeFileL(data):
     fcntl.flock(file.fileno(), fcntl.LOCK_UN)
     file.close()
 
-#need more atomicity, might need a pure lock
 def __rwFileL(f, data):
-    fd = open(FILE_NAME, "rb") #rb+ didn't work for me
-    fcntl.flock(fd.fileno(), fcntl.LOCK_SH)
+    fd = open(FILE_NAME, "rb+")
+    fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     file = pickle.load(fd)
 
-    f(file, data)
-
-    fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-    fd.close()
-
-    fd = open(FILE_NAME, "wb")
-    fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+    ret = f(file, data)
+    
+    fd.seek(0)
     pickle.dump(file, fd)
     fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     fd.close()
+
+    return ret

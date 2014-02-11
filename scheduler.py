@@ -38,13 +38,14 @@ def jobs2Schedules (jobs):
 while True:
 
 	jobs = API.getJobs()
-	
 	schedules = sortSchedules(jobs2Schedules(jobs))
-	workers = API.getWorkers()
 
-	if len(workers):	
-		for schedule in schedules:
-			worker = workers.pop()
+	workers = API.getWorkers()
+	num_workers = len(workers)
+
+	if num_workers:
+		for i,schedule in enumerate(schedules):
+			worker = workers[i % num_workers]
 			schedule.worker = worker
 
 		API.addSchedules(schedules)
