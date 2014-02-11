@@ -48,7 +48,7 @@ while True:
 			worker = workers.pop()
 			schedule.worker = worker
 
-	API.addSchedules(schedules)
+		API.addSchedules(schedules)
 
  	time.sleep(SCHEDULER_UPDATE_INTERVAL)								#so your processor doesn't explode
 
