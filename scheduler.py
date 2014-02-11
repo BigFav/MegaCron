@@ -2,6 +2,7 @@ from crontab import CronTab
 from croniter import croniter
 from datetime import datetime
 from datetime import timedelta
+from operator import attrgetter
 import time
 import API
 
@@ -9,9 +10,7 @@ SCHEDULER_UPDATE_INTERVAL = timedelta(seconds=15).total_seconds()
 
 def sortSchedules (schedules):
 
-	schedules.sort(schedules.sort(key=lambda schedule: schedule.timeToRun, reverse=False))
-
-	return schedules
+	return sorted(schedules, key=attrgetter('timeToRun'))
 
 
 def jobs2Schedules (jobs):

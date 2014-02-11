@@ -25,7 +25,9 @@ def runSchedules(worker):
 
         if schedule.timeToRun <= datetime.now():
             subprocess.call(schedule.job.command, shell=True)
+            print len(API.getSchedules(worker))
             API.removeSchedule(schedule)
+            print len(API.getSchedules(worker))
             
     else:
         time.sleep(SCHEDULES_UPDATE_INTERVAL.total_seconds())

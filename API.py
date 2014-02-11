@@ -69,9 +69,7 @@ def getSchedules(worker):
     schedules = __readFileL()['schedules']
     return [schedule for schedule in schedules if schedule.worker == worker]
 
-def addSchedules(schedules):
-    file = __readFile()
-
+def addSchedulesFun(file, schedules):
     # Give them an id if they don't already have one
     for schedule in schedules:
         if schedule.id != None:
@@ -80,22 +78,20 @@ def addSchedules(schedules):
 
     file['schedules'].extend(schedules)
 
-    __writeFile(file)
+def addSchedules(schedules):
+    __rwFileL(addSchedulesFun, schedules)
 
-#should be atomic?
 def addScheduleFun(file, schedule):
     file['schedules'].append(schedule)
 
 def addSchedule(schedule):
     __rwFileL(addScheduleFun, schedule)
 
-#should this be atomic?
-def removeSchedule(schedule):
-    file = __readFileL()
-
+def removeScheduleFun(file, schedule):
     file['schedules'].remove(schedule)
 
-    __writeFileL(file)
+def removeSchedule(schedule):
+    __rwFileL(removeScheduleFun, schedule)
 
 def getHeartbeat(worker):
     workers = __readFile()['workers']
@@ -173,16 +169,19 @@ def __writeFileL(data):
     fcntl.flock(file.fileno(), fcntl.LOCK_UN)
     file.close()
 
-#this is an atomic function
+#need more atomicity, might need a pure lock
 def __rwFileL(f, data):
-    fd = open(FILE_NAME, "rb+")
+    fd = open(FILE_NAME, "rb") #rb+ didn't work for me
     fcntl.flock(fd.fileno(), fcntl.LOCK_SH)
     file = pickle.load(fd)
 
     f(file, data)
 
+    fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+    fd.close()
+
+    fd = open(FILE_NAME, "wb")
     fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     pickle.dump(file, fd)
     fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     fd.close()
-
