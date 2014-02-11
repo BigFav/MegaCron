@@ -22,7 +22,7 @@ class Schedule:
         self.job = job
         self.worker = worker
         self.id = id
-        
+
     def __eq__(self, other):
         return self.id == other.id
 
@@ -39,7 +39,7 @@ def getJobs():
 
 def getJobsForUser(userId):
     jobs = __readFile()['jobs']
-    return [job for job in jobs if job.userId == userId]    
+    return [job for job in jobs if job.userId == userId]
 
 def setJobs(jobs, userId):
     file = __readFile()
@@ -55,21 +55,15 @@ def setJobs(jobs, userId):
 
     __writeFile(file)
 
-def setJobTime(job):
-   
-    f = open(FILE_NAME, "r+b")
-    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
-    file = pickle.load(f)
-
+def setJobFun(file, job):
     for f_job in file['jobs']:
         if f_job.id == job.id:
             f_job.lastTimeRun = job.lastTimeRun
-            break
+            return
 
-    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-    pickle.dump(file, f)
-    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-    f.close()
+#should be atomic?
+def setJobTime(job):
+    __rwFileL(setJobFun, job)
 
 def getSchedules(worker):
     schedules = __readFileL()['schedules']
@@ -88,33 +82,20 @@ def addSchedules(schedules):
 
     __writeFile(file)
 
-def addSchedule(schedule):
-    f = open(FILE_NAME, "r+b")
-    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
-    file = pickle.load(f)
-
+#should be atomic?
+def addScheduleFun(file, schedule):
     file['schedules'].append(schedule)
 
-    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-    pickle.dump(file, f)
-    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-    f.close() 
+def addSchedule(schedule):
+    __rwFileL(addScheduleFun, schedule)
 
-
+#should this be atomic?
 def removeSchedule(schedule):
-    f = open(FILE_NAME, "rb")
-    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
-    file = pickle.load(f)
-    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-    f.close()
+    file = __readFileL()
 
     file['schedules'].remove(schedule)
 
-    f = open(FILE_NAME, "wb")
-    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
-    pickle.dump(file, f)
-    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-    f.close() 
+    __writeFileL(file)
 
 def getHeartbeat(worker):
     workers = __readFile()['workers']
@@ -131,7 +112,7 @@ def updateHeartbeat(worker):
         if w == worker:
             w.heartbeat = datetime.now()
             break
-    
+
     __writeFile(file)
 
 def getWorkers():
@@ -143,7 +124,7 @@ def createWorker():
     worker = Worker(datetime.now(), id)
     file['workers'].append(worker)
     file['nextWorkerId'] += 1
-    
+
     __writeFile(file)
 
     return worker
@@ -192,8 +173,9 @@ def __writeFileL(data):
     fcntl.flock(file.fileno(), fcntl.LOCK_UN)
     file.close()
 
+#this is an atomic function
 def __rwFileL(f, data):
-    fd = open(FILE_NAME, "r+b")
+    fd = open(FILE_NAME, "rb+")
     fcntl.flock(fd.fileno(), fcntl.LOCK_SH)
     file = pickle.load(fd)
 
@@ -202,5 +184,5 @@ def __rwFileL(f, data):
     fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     pickle.dump(file, fd)
     fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-    fd.close() 
+    fd.close()
 

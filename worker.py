@@ -1,10 +1,9 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 import API
 import subprocess
 import time
 from datetime import datetime, timedelta
-from crontab import CronTab
 
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)#minutes=10)
 
@@ -26,7 +25,8 @@ def runSchedules(worker):
 
         if schedule.timeToRun <= datetime.now():
             subprocess.call(schedule.job.command, shell=True)
-            API.removeSchedule(schedule) #Why does this not work?!?!?!
+            API.removeSchedule(schedule)
+            
     else:
         time.sleep(SCHEDULES_UPDATE_INTERVAL.total_seconds())
 

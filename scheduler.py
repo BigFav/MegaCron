@@ -1,5 +1,3 @@
-#!/usr/local/python
-
 from crontab import CronTab
 from croniter import croniter
 from datetime import datetime
@@ -26,10 +24,10 @@ def jobs2Schedules (jobs):
 		cmd = CronTab(tab="""%s %s""" % (job.interval, job.command))		#these two lines
 		command = cmd.crons.pop()
 		cmd_sch = command.schedule(date_from = datetime.now())			#allow us to obtain next timeToRun
-		
+	
 		nxt = cmd_sch.get_next()
 		while (nxt - datetime.now()).total_seconds() < SCHEDULER_UPDATE_INTERVAL:
-		    job.lastTimeRun = nxt
+                    job.lastTimeRun = nxt
 		    schedule = API.Schedule(nxt, job, worker=None)
 		    schedules.append(schedule)
                     API.setJobTime(job)

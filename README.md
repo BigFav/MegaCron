@@ -1,14 +1,10 @@
-Now preliminary work on the work queue design.
+Wikimedia Distributed Cron
 ________________________________________________________________________
 
-workQ.py - a design for distributed design
+crontab.py - gets and sets user's crontab
 
-run.py - Parses crontab, and runs it on a single machine
+schedule.py - orders, schedules, and divies commands
 
-help.py - tests efficiency of crontab parsing "algos"
+worker.py - runs instances of commands
 
-crontab.tab - the crontab that run.py runs
-
-testcron.tab - a larger crontab that help.py uses
-
-good link - https://pypi.python.org/pypi/python-crontab
+API.py - the API for all interactions; no external dependencies
