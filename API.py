@@ -1,21 +1,30 @@
 import pickle
+import os
+import fcntl
 from datetime import datetime
 
 FILE_NAME = "db.p"
 
 class Job:
-    def __init__(self, interval, command, userId, lastTimeRun=None):
+    def __init__(self, interval, command, userId, lastTimeRun, id=None):
         self.interval = interval
         self.command = command
         self.userId = userId
         self.lastTimeRun = lastTimeRun
+        self.id = id
+
+    def __eq__(self, other):
+        return self.id == other.id
 
 class Schedule:
-    def __init__(self, timeToRun, job, worker=None, completedTime=None):
+    def __init__(self, timeToRun, job, worker=None, id=None):
         self.timeToRun = timeToRun
         self.job = job
         self.worker = worker
-        self.completedTime = completedTime
+        self.id = id
+
+    def __eq__(self, other):
+        return self.id == other.id
 
 class Worker:
     def __init__(self, heartbeat, id=None):
@@ -28,27 +37,60 @@ class Worker:
 def getJobs():
     return __readFile()['jobs']
 
-def getJobs(userId):
+def getJobsForUser(userId):
+    jobs = __readFile()['jobs']
     return [job for job in jobs if job.userId == userId]
 
-
-def setJobs(jobs):
+def setJobs(jobs, userId):
     file = __readFile()
 
+    # Give them an id if they don't already have one
+    for job in jobs:
+        if job.id != None:
+            job.id = file['nextJobId']
+            file['nextJobId'] += 1
+
+    file['jobs'] = [job for job in file['jobs'] if job.userId != userId]
     file['jobs'].extend(jobs)
 
     __writeFile(file)
 
+def setJobFun(file, job):
+    for f_job in file['jobs']:
+        if f_job.id == job.id:
+            f_job.lastTimeRun = job.lastTimeRun
+            return
+
+def setJobTime(job):
+    __rwFileL(setJobFun, job)
+
 def getSchedules(worker):
-    schedules = __readFile()['schedules']
+    schedules = __readFileL()['schedules']
     return [schedule for schedule in schedules if schedule.worker == worker]
 
-def addSchedules(schedules):
-    file = __readFile()
+def addSchedulesFun(file, schedules):
+    # Give them an id if they don't already have one
+    for schedule in schedules:
+        if schedule.id != None:
+            schedule.id = file['nextScheduleId']
+            file['nextScheduleId'] += 1
 
     file['schedules'].extend(schedules)
 
-    __writeFile(file)
+def addSchedules(schedules):
+    __rwFileL(addSchedulesFun, schedules)
+
+def addScheduleFun(file, schedule):
+    file['schedules'].append(schedule)
+
+def addSchedule(schedule):
+    __rwFileL(addScheduleFun, schedule)
+
+def removeScheduleFun(file, schedule):
+    file['schedules'].remove(schedule)
+
+def removeSchedule(schedule):
+    __rwFileL(removeScheduleFun, schedule)
 
 def getHeartbeat(worker):
     workers = __readFile()['workers']
@@ -65,36 +107,80 @@ def updateHeartbeat(worker):
         if w == worker:
             w.heartbeat = datetime.now()
             break
-    
+
     __writeFile(file)
 
 def getWorkers():
-    return __readFile()['workers']
+    return __readFileL()['workers']
+
+def createWorkerFun(file, null):
+    id = file['nextWorkerId']
+    worker = Worker(datetime.now(), id)
+    file['workers'].append(worker)
+    file['nextWorkerId'] += 1
+  
+    return worker
 
 def createWorker():
-    file = __readFile()
-    id = file['nextWorkerId']
+    return __rwFileL(createWorkerFun, "")
 
-    file['workers'].append(Worker(datetime.now(), id))
-    file['nextWorkerId'] += 1
-    
-    __writeFile(file)
+def destroyWorkerFun(file, worker):
+    file['workers'].remove(worker)
 
-    return id
+def destroyWorker(worker):
+    __rwFileL(destroyWorkerFun, worker)
 
 def __readFile():
     try:
-        with open(FILE_NAME,"r") as file:
+        with open(FILE_NAME,"rb") as file:
             return pickle.load(file)
     except IOError:
         return {
             'jobs': [],
             'schedules': [],
             'workers': [],
+            'nextJobId': 1,
+            'nextScheduleId': 1,
             'nextWorkerId': 1
         }
 
 def __writeFile(data):
-    with open(FILE_NAME,"wb") as file:
+    with open(FILE_NAME+'~',"wb") as file:
         pickle.dump(data, file)
+    os.rename(FILE_NAME+'~', FILE_NAME)
 
+def __readFileL():
+    try:
+        with open(FILE_NAME, "rb") as file:
+	    fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+	    load = pickle.load(file)
+	    fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+	return load
+    except IOError:
+        return {
+            'jobs': [],
+            'schedules': [],
+            'workers': [],
+            'nextJobId': 1,
+            'nextScheduleId': 1,
+            'nextWorkerId': 1
+        }
+
+def __writeFileL(data):
+    with open(FILE_NAME, "wb") as file:
+        fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+        pickle.dump(data, file)
+        fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+
+def __rwFileL(f, data):
+    with open(FILE_NAME, "rb+") as fd:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+        file = pickle.load(fd)
+
+        ret = f(file, data)
+
+        fd.seek(0)
+        pickle.dump(file, fd)
+        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+
+    return ret

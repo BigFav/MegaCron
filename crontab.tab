@@ -1,4 +1,2 @@
-* * * * *  ./dumb.sh
-* * * * * ls
-* * * * * echo YAY!!
-* * * * * python dummy.py cray shit
+* * * * * echo "new 1"
+* * * * * echo "new 2"
