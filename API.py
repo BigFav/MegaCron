@@ -151,11 +151,10 @@ def __writeFile(data):
 
 def __readFileL():
     try:
-        file = open(FILE_NAME, "rb")
-	fcntl.flock(file.fileno(), fcntl.LOCK_EX)
-	load = pickle.load(file)
-	fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-	file.close()
+        with open(FILE_NAME, "rb") as file:
+	    fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+	    load = pickle.load(file)
+	    fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 	return load
     except IOError:
         return {
@@ -168,22 +167,20 @@ def __readFileL():
         }
 
 def __writeFileL(data):
-    file = open(FILE_NAME, "wb")
-    fcntl.flock(file.fileno(), fcntl.LOCK_EX)
-    pickle.dump(data, file)
-    fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-    file.close()
+    with open(FILE_NAME, "wb") as file:
+        fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+        pickle.dump(data, file)
+        fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 
 def __rwFileL(f, data):
-    fd = open(FILE_NAME, "rb+")
-    fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-    file = pickle.load(fd)
+    with open(FILE_NAME, "rb+") as fd:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+        file = pickle.load(fd)
 
-    ret = f(file, data)
-    
-    fd.seek(0)
-    pickle.dump(file, fd)
-    fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-    fd.close()
+        ret = f(file, data)
+
+        fd.seek(0)
+        pickle.dump(file, fd)
+        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
 
     return ret
