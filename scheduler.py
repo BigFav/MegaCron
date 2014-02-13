@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from crontab import CronTab
 from croniter import croniter
 from datetime import datetime
