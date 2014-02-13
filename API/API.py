@@ -8,7 +8,7 @@ import os
 import fcntl
 from datetime import datetime
 
-FILE_NAME = "db.p"
+FILE_NAME = "../db.p"
 
 class Job:
     def __init__(self, interval, command, userId, lastTimeRun, id=None):
