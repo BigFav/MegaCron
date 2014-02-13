@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import sys
+sys.path.append("..")
+
 from crontab import CronTab
 from croniter import croniter
 from datetime import datetime

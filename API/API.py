@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import sys
+sys.path.append("..")
+
 import pickle
 import os
 import fcntl
