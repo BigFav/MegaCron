@@ -32,7 +32,12 @@ def jobs2Schedules (jobs):
 		nxt = cmd_sch.get_next()
 		while (nxt - datetime.now()).total_seconds() < SCHEDULER_UPDATE_INTERVAL:
                     job.lastTimeRun = nxt
-		    schedule = API.Schedule(nxt, job, worker=None)
+
+                    worker = API.getNextWorker()
+                    if not worker:
+                        break
+
+		    schedule = API.Schedule(nxt, job, worker)
 		    schedules.append(schedule)
                     API.setJobTime(job)
 		    nxt = cmd_sch.get_next()
@@ -45,15 +50,7 @@ while True:
 	jobs = API.getJobs()
 	schedules = sortSchedules(jobs2Schedules(jobs))
 
-	workers = API.getWorkers()
-	num_workers = len(workers)
-
-	if num_workers:
-		for i,schedule in enumerate(schedules):
-			worker = workers[i % num_workers]
-			schedule.worker = worker
-
-		API.addSchedules(schedules)
+        API.addSchedules(schedules)
 
  	time.sleep(SCHEDULER_UPDATE_INTERVAL)								#so your processor doesn't explode
 
