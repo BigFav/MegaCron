@@ -129,6 +129,9 @@ def getNextWorker():
     __writeFile(file)
     return nextWorker
 
+def getWorkers():
+    return __readFileL()['workers']
+
 def createWorkerFun(file, null):
     id = file['nextWorkerId']
     worker = Worker(datetime.now(), id)

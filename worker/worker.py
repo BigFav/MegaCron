@@ -8,41 +8,53 @@ import subprocess
 import signal
 import sys
 import time
+import sched
 from datetime import datetime, timedelta
 
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)#minutes=10)
+HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)
 
-schedules = None
-nextSchedulesUpdateTime = datetime.now()
+schedules = []
+worker = API.createWorker()
 
 def signal_handler(signal, frame):
     global worker
     API.destroyWorker(worker)
     sys.exit(0)
 
-def runSchedules(worker):
+def updateSchedules(events):
+    global worker
     global schedules
-    global nextSchedulesUpdateTime
 
-    if nextSchedulesUpdateTime <= datetime.now():
-        schedules = API.getSchedules(worker)
-        nextSchedulesUpdateTime = datetime.now() + SCHEDULES_UPDATE_INTERVAL
- 
+    schedules = API.getSchedules(worker)
+    runSchedules(events)
+
+    events.enter(SCHEDULES_UPDATE_INTERVAL.total_seconds(), 1, updateSchedules, (events,))
+
+def runSchedules(events):
+    global schedules
+
     if len(schedules) > 0:
-        schedule = schedules.pop()
-        secondsToSleep = (schedule.timeToRun - datetime.now()).total_seconds()
-        if secondsToSleep > 0:
-            time.sleep(min(SCHEDULES_UPDATE_INTERVAL.total_seconds(), secondsToSleep))
-
-        if schedule.timeToRun <= datetime.now():
+        schedule = schedules[-1]
+        secondsToNextRun = (schedule.timeToRun - datetime.now()).total_seconds()
+        if secondsToNextRun <= 0:
             subprocess.call(schedule.job.command, shell=True)
             API.removeSchedule(schedule)
-            
-    else:
-        time.sleep(SCHEDULES_UPDATE_INTERVAL.total_seconds())
+            schedules.pop()
 
-worker = API.createWorker()
+        events.enter(secondsToNextRun, 1, runSchedules, (events,))
+
+def heartbeat(events):
+    global worker
+
+    API.updateHeartbeat(worker)
+    events.enter(HEARTBEAT_UPDATE_INTERVAL.total_seconds(), 1, heartbeat, (events,))
+
 signal.signal(signal.SIGINT, signal_handler)
+events = sched.scheduler(time.time, time.sleep)
 
 while True:
-    runSchedules(worker)
+    heartbeat(events)
+    updateSchedules(events)
+    events.run()
+
