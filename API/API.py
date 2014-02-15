@@ -7,6 +7,7 @@ import pickle
 import os
 import fcntl
 from datetime import datetime
+from collections import deque
 
 FILE_NAME = "../db.p"
 
@@ -22,7 +23,7 @@ class Job:
         return self.id == other.id
 
 class Schedule:
-    def __init__(self, timeToRun, job, worker=None, id=None):
+    def __init__(self, timeToRun, job, worker, id=None):
         self.timeToRun = timeToRun
         self.job = job
         self.worker = worker
@@ -115,8 +116,18 @@ def updateHeartbeat(worker):
 
     __writeFile(file)
 
-def getWorkers():
-    return __readFileL()['workers']
+def getNextWorker():
+    file = __readFile()
+
+    workers = file['workers']
+    if len(workers) == 0:
+        return None
+
+    nextWorker = workers.popleft()
+    workers.append(nextWorker)
+
+    __writeFile(file)
+    return nextWorker
 
 def createWorkerFun(file, null):
     id = file['nextWorkerId']
@@ -143,7 +154,7 @@ def __readFile():
         return {
             'jobs': [],
             'schedules': [],
-            'workers': [],
+            'workers': deque(),
             'nextJobId': 1,
             'nextScheduleId': 1,
             'nextWorkerId': 1
@@ -165,7 +176,7 @@ def __readFileL():
         return {
             'jobs': [],
             'schedules': [],
-            'workers': [],
+            'workers': deque(),
             'nextJobId': 1,
             'nextScheduleId': 1,
             'nextWorkerId': 1
