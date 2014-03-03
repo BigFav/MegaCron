@@ -1,10 +1,11 @@
 Wikimedia Distributed Cron
 ________________________________________________________________________
 
-crontab.py - gets and sets user's crontab
+edit.py - gets any existing crontab entries an allows the user to 
+add, modify or remove tasks using a standard text editor 
 
-schedule.py - orders, schedules, and divies commands
+scheduler.py - orders tasks from soonest to furthest
 
-worker.py - runs instances of commands
+worker.py - runs instances of commands entered via edit.py
 
 API.py - the API for all interactions; no external dependencies
