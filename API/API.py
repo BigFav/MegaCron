@@ -52,7 +52,7 @@ def setJobs(jobs, userId):
 
     # Give them an id if they don't already have one
     for job in jobs:
-        if job.id != None:
+        if job.id == None:
             job.id = file['nextJobId']
             file['nextJobId'] += 1
 
@@ -77,7 +77,7 @@ def getSchedules(worker):
 def addSchedulesFun(file, schedules):
     # Give them an id if they don't already have one
     for schedule in schedules:
-        if schedule.id != None:
+        if schedule.id == None:
             schedule.id = file['nextScheduleId']
             file['nextScheduleId'] += 1
 
