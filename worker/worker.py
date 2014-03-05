@@ -1,60 +1,67 @@
 #!/usr/bin/python
 
 import sys
-sys.path.append("../API")
-
-import API
 import subprocess
 import signal
-import sys
 import time
 import sched
 from datetime import datetime, timedelta
 
-SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)#minutes=10)
+sys.path.append("../api")
+import api
+
+SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)
 HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)
 
-schedules = []
-worker = API.createWorker()
+_schedules = []
+_worker = api.create_worker()
 
-def signal_handler(signal, frame):
-    global worker
-    API.destroyWorker(worker)
+
+def _signal_handler(signal, frame):
+    global _worker
+    api.destroy_worker(_worker)
     sys.exit(0)
 
-def updateSchedules(events):
-    global worker
-    global schedules
 
-    schedules = API.getSchedules(worker)
-    runSchedules(events)
+def update_schedules(events):
+    global _worker
+    global _schedules
 
-    events.enter(SCHEDULES_UPDATE_INTERVAL.total_seconds(), 1, updateSchedules, (events,))
+    _schedules = api.get_schedules(_worker)
+    _run_schedules(events)
 
-def runSchedules(events):
-    global schedules
+    delay = SCHEDULES_UPDATE_INTERVAL.total_seconds()
+    events.enter(delay, 1, update_schedules, (events,))
 
-    if len(schedules) > 0:
-        schedule = schedules[-1]
-        secondsToNextRun = (schedule.timeToRun - datetime.now()).total_seconds()
-        if secondsToNextRun <= 0:
+
+def _run_schedules(events):
+    global _schedules
+
+    if len(_schedules) > 0:
+        schedule = _schedules[-1]
+        time_to_run = schedule.time_to_run
+        seconds_to_next_run = (time_to_run - datetime.now()).total_seconds()
+        if seconds_to_next_run <= 0:
             subprocess.call(schedule.job.command, shell=True)
-            API.removeSchedule(schedule)
-            schedules.pop()
+            api.remove_schedule(schedule)
+            _schedules.pop()
 
-        events.enter(secondsToNextRun, 1, runSchedules, (events,))
+        events.enter(seconds_to_next_run, 1, _run_schedules, (events,))
+
 
 def heartbeat(events):
-    global worker
+    global _worker
 
-    API.updateHeartbeat(worker)
-    events.enter(HEARTBEAT_UPDATE_INTERVAL.total_seconds(), 1, heartbeat, (events,))
+    api.update_heartbeat(_worker)
+    delay = HEARTBEAT_UPDATE_INTERVAL.total_seconds()
+    events.enter(delay, 1, heartbeat, (events,))
 
-signal.signal(signal.SIGINT, signal_handler)
-events = sched.scheduler(time.time, time.sleep)
 
-while True:
-    heartbeat(events)
-    updateSchedules(events)
-    events.run()
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, _signal_handler)
+    events = sched.scheduler(time.time, time.sleep)
 
+    while True:
+        heartbeat(events)
+        update_schedules(events)
+        events.run()

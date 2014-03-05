@@ -4,38 +4,38 @@ import sys
 import string
 import subprocess
 import os
+
 from crontab import CronTab
 from datetime import datetime
-sys.path.append("../API")
 
-import API
+sys.path.append("../api")
+import api
 
+if __name__ == '__main__':
+    uid = str(os.getuid())
 
-uid = str(os.getuid())
+    if len(sys.argv) < 3:
+        tb_file = "crontab.tab"
+        jobs_old = api.get_jobs_for_user(uid)
+        with open(tb_file, 'w') as tab:
+            for job in jobs_old:
+                tab.write("%s %s\n" % (job.interval, job.command))
 
-if len(sys.argv) < 3:
-	tbfile = "crontab.tab"
-	jobs_old = API.getJobsForUser(uid)
-	with open(tbfile, 'w') as tab:
-		for job in jobs_old:
-			tab.write("%s %s\n" % (job.interval, job.command))
+        editor = os.getenv('EDITOR')
+        if editor is not None:
+            os.system("%s %s" % (editor, tb_file))
+        else:
+            subprocess.call("vim %s" % tb_file, shell=True)
+    elif sys.argv[1] == '-u':
+        tb_file = sys.argv[2]
 
-	editor = os.getenv('EDITOR')
-	if editor:
-		os.system("%s %s" % (editor, tbfile))
-	else:
-		subprocess.call("vim %s" % tbfile, shell=True)
-elif sys.argv[1] == '-u':
-	tbfile = sys.argv[2]
+    jobs_old = CronTab(tabfile=tb_file)
+    jobs_old = map(str, jobs_old)
+    jobs_new = []
+    for job in jobs_old:
+        tmp = job.split(' ')
+        interval = string.joinfields(tmp[:5], ' ')
+        cmd = string.joinfields(tmp[5:], ' ')
+        jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
-
-jobs_old = CronTab(tabfile=tbfile)
-jobs_old = map(str, jobs_old)
-jobs_new = []
-for job in jobs_old:
-	tmp = job.split(' ')
-	interval = string.joinfields(tmp[:5], ' ')
-	cmd = string.joinfields(tmp[5:], ' ')
-	jobs_new.append(API.Job(interval, cmd, uid, datetime.now()))
-
-API.setJobs(jobs_new, uid)
+    api.set_jobs(jobs_new, uid)
