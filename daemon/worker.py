@@ -1,10 +1,5 @@
-#!/usr/bin/python
-
 import sys
 import subprocess
-import signal
-import time
-import sched
 from datetime import datetime, timedelta
 
 sys.path.append("../api")
@@ -13,21 +8,27 @@ import api
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)
 HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)
 
+worker = api.create_worker()
 _schedules = []
-_worker = api.create_worker()
+_run_schedules_event = None
 
 
-def _signal_handler(signal, frame):
-    global _worker
-    api.destroy_worker(_worker)
-    sys.exit(0)
+def cleanup():
+    global worker
+    api.destroy_worker(worker)
 
 
 def update_schedules(events):
-    global _worker
+    global worker
     global _schedules
+    global _run_schedules_event
 
-    _schedules = api.get_schedules(_worker)
+    _schedules = api.get_schedules(worker)
+
+    # Cancel the existing event because _run_schedules will create a new one.
+    if _run_schedules_event is not None:
+        events.cancel(_run_schedules_event)
+
     _run_schedules(events)
 
     delay = SCHEDULES_UPDATE_INTERVAL.total_seconds()
@@ -36,6 +37,7 @@ def update_schedules(events):
 
 def _run_schedules(events):
     global _schedules
+    global _run_schedules_event
 
     if len(_schedules) > 0:
         schedule = _schedules[-1]
@@ -46,22 +48,16 @@ def _run_schedules(events):
             api.remove_schedule(schedule)
             _schedules.pop()
 
-        events.enter(seconds_to_next_run, 1, _run_schedules, (events,))
+            _run_schedules_event = events.enter(seconds_to_next_run, 1,
+                                                _run_schedules, (events,))
+
+    _run_schedules_event = None
 
 
 def heartbeat(events):
-    global _worker
+    global worker
 
-    api.update_heartbeat(_worker)
+    api.update_heartbeat(worker)
+
     delay = HEARTBEAT_UPDATE_INTERVAL.total_seconds()
     events.enter(delay, 1, heartbeat, (events,))
-
-
-if __name__ == '__main__':
-    signal.signal(signal.SIGINT, _signal_handler)
-    events = sched.scheduler(time.time, time.sleep)
-
-    while True:
-        heartbeat(events)
-        update_schedules(events)
-        events.run()
