@@ -23,20 +23,25 @@ def create_schedules(events):
         # Adding Schedules for jobs within SCHEDULER_UPDATE_INTERVAL
         cmd = CronTab(tab="%s %s" % (job.interval, job.command))
         command = cmd.crons.pop()
-        cmd_sch = command.schedule(date_from=datetime.now())
+        cmd_sch = command.schedule(date_from=job.last_time_run)
 
-        nxt = cmd_sch.get_next()  # get next time to run
-        while (nxt - datetime.now()) < SCHEDULER_UPDATE_INTERVAL:
-            job.lastTimeRun = nxt
+        # If we have missed more than one occurrence only run one
+        time = cmd_sch.get_next()
+        next_time = cmd_sch.get_next()
+        if next_time <= datetime.now():
+            time = next_time
+            next_time = cmd_sch.get_next()
+
+        if (time - datetime.now()) < SCHEDULER_UPDATE_INTERVAL:
+            job.last_time_run = time
+            api.set_job_time(job)
 
             next_worker = api.get_next_worker()
             if next_worker is None:
                 break
 
-            schedule = api.Schedule(nxt, job, next_worker)
+            schedule = api.Schedule(time, job, next_worker)
             schedules.append(schedule)
-            api.set_job_time(job)
-            nxt = cmd_sch.get_next()
 
     api.add_schedules(sort_schedules(schedules))
 
