@@ -12,7 +12,7 @@ sys.path.append("../api")
 import api
 
 if __name__ == '__main__':
-    uid = str(os.getuid())
+    uid = os.getuid()
 
     if len(sys.argv) < 3:
         tb_file = "crontab.tab"
