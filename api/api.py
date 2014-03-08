@@ -9,8 +9,9 @@ from datetime import datetime
 from collections import deque
 
 sys.path.append("..")
+from config import config
 
-FILE_NAME = "../db.p"
+FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 
 
 class Job:
