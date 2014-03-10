@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='Megacron',
     version='0.1',
     description='Distributed Cron Replacement',
-    author='John Tanner, Favian Contreras, Ben Zhegers, Ben Zeghers',
+    author='John Tanner, Favian Contreras, Ben Zeghers',
     author_email='megacronteam@gmail.com',
-    packages=['API', 'edit', 'scheduler', 'status', 'worker'],
+    packages=find_packages(),
     url='https://www.mediawiki.org/wiki/Facebook_Open_Academy/Cron',
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
-    long_description=open('README.txt').read(),
+    long_description=open('README.txt').read()
 )
