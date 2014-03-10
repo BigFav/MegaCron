@@ -186,6 +186,13 @@ def _read_file():
 
 
 def _write_file(data):
+    dir_name = os.path.dirname(FILE_NAME)
+    try:
+        os.makedirs(dir_name)
+    except OSError:
+        if not os.path.isdir(dir_name):
+            raise
+
     with open(FILE_NAME+'~', "wb") as file:
         pickle.dump(data, file)
     os.rename(FILE_NAME+'~', FILE_NAME)
@@ -210,6 +217,13 @@ def _read_file_l():
 
 
 def _write_file_l(data):
+    dir_name = os.path.dirname(FILE_NAME)
+    try:
+        os.makedirs(dir_name)
+    except OSError:
+        if not os.path.isdir(dir_name):
+            raise
+
     with open(FILE_NAME, "wb") as file:
         fcntl.flock(file.fileno(), fcntl.LOCK_EX)
         pickle.dump(data, file)
@@ -217,6 +231,13 @@ def _write_file_l(data):
 
 
 def _rw_file_l(f, data):
+    dir_name = os.path.dirname(FILE_NAME)
+    try:
+        os.makedirs(dir_name)
+    except OSError:
+        if not os.path.isdir(dir_name):
+            raise
+
     with open(FILE_NAME, "rb+") as fd:
         fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
         file = pickle.load(fd)
