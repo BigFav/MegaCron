@@ -1,21 +1,16 @@
-#!/usr/bin/python
-
 import sys
 import signal
 import sched
 import time
 
-sys.path.append("../api")
-import scheduler
-import worker
+from megacron.daemon import scheduler, worker
 
 
 def _signal_handler(signal, frame):
     worker.cleanup()
     sys.exit(0)
 
-
-if __name__ == '__main__':
+def main():
     signal.signal(signal.SIGINT, _signal_handler)
     events = sched.scheduler(time.time, time.sleep)
 

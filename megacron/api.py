@@ -1,15 +1,10 @@
-#!/usr/bin/python
-
-import sys
 import pickle
 import os
 import fcntl
-
 from datetime import datetime
 from collections import deque
 
-sys.path.append("..")
-from config import config
+from megacron import config
 
 FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 

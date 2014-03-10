@@ -1,12 +1,10 @@
-import sys
 from datetime import datetime, timedelta
 from operator import attrgetter
 
 from crontab import CronTab
 
-sys.path.append("../api")
-import api
-import worker
+from megacron import api
+from megacron.daemon import worker
 
 SCHEDULER_UPDATE_INTERVAL = timedelta(seconds=15)
 WORKER_HEARTBEAT_TIMEOUT = timedelta(seconds=20)

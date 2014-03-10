@@ -1,11 +1,9 @@
-import sys
 import pwd
 import os
 import subprocess
 from datetime import datetime, timedelta
 
-sys.path.append("../api")
-import api
+from megacron import api
 
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)
 HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)

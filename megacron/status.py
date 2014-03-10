@@ -1,9 +1,6 @@
-#!/usr/bin/python2
-
 import sys
 
-sys.path.append("../api")
-import api
+from megacron import api
 
 
 def get_worker_status():
@@ -14,5 +11,5 @@ def get_worker_status():
         print "%d workers are up" % L
 
 
-if __name__ == '__main__':
+def main():
     get_worker_status()

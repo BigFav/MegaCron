@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import sys
 import string
 import subprocess
@@ -8,10 +6,10 @@ import os
 from crontab import CronTab
 from datetime import datetime
 
-sys.path.append("../api")
-import api
+from megacron import api
 
-if __name__ == '__main__':
+
+def main():
     uid = os.getuid()
 
     if len(sys.argv) < 3:
