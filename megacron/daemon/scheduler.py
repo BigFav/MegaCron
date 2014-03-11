@@ -1,12 +1,10 @@
-import sys
 from datetime import datetime, timedelta
 from operator import attrgetter
 
-from crontab import CronTab
+from croniter import croniter
 
-sys.path.append("../api")
-import api
-import worker
+from megacron import api
+from megacron.daemon import worker
 
 SCHEDULER_UPDATE_INTERVAL = timedelta(seconds=15)
 WORKER_HEARTBEAT_TIMEOUT = timedelta(seconds=20)
@@ -20,12 +18,9 @@ def create_schedules(events):
     schedules = []
 
     for job in api.get_jobs():
-        # Adding Schedules for jobs within SCHEDULER_UPDATE_INTERVAL
-        cmd = CronTab(tab="%s %s" % (job.interval, job.command))
-        command = cmd.crons.pop()
-        cmd_sch = command.schedule(date_from=datetime.now())
+        cmd_sch = croniter(job.interval, datetime.now())
 
-        nxt = cmd_sch.get_next()  # get next time to run
+        nxt = cmd_sch.get_next(datetime)  # get next time to run
         while (nxt - datetime.now()) < SCHEDULER_UPDATE_INTERVAL:
             job.lastTimeRun = nxt
 
@@ -36,7 +31,7 @@ def create_schedules(events):
             schedule = api.Schedule(nxt, job, next_worker)
             schedules.append(schedule)
             api.set_job_time(job)
-            nxt = cmd_sch.get_next()
+            nxt = cmd_sch.get_next(datetime)
 
     api.add_schedules(sort_schedules(schedules))
 
