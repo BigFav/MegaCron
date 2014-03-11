@@ -11,7 +11,7 @@ sudo pip install megacron
 ```
 or clone this repo and run:
 ```
-sudo setup.py install
+sudo ./setup.py install
 ```
 
 ##Usage
