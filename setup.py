@@ -16,7 +16,7 @@ setup(
             'megacron-status = megacron.status:main'
         ]
     },
-    install_requires=['python-crontab', 'croniter'],
+    install_requires=['croniter'],
     package_data={
         'megacron': ['conf/megacron.conf']
     },

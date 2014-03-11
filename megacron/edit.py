@@ -2,8 +2,6 @@ import sys
 import string
 import subprocess
 import os
-
-from crontab import CronTab
 from datetime import datetime
 
 from megacron import api
@@ -27,13 +25,12 @@ def main():
     elif sys.argv[1] == '-u':
         tb_file = sys.argv[2]
 
-    jobs_old = CronTab(tabfile=tb_file)
-    jobs_old = map(str, jobs_old)
     jobs_new = []
-    for job in jobs_old:
-        tmp = job.split(' ')
-        interval = string.joinfields(tmp[:5], ' ')
-        cmd = string.joinfields(tmp[5:], ' ')
-        jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
+    with open(tb_file, 'r') as tab:
+        for job in tab:
+            tmp = job.strip().split(' ')
+            interval = string.joinfields(tmp[:5], ' ')
+            cmd = string.joinfields(tmp[5:], ' ')
+            jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
     api.set_jobs(jobs_new, uid)
