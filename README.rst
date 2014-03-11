@@ -1,29 +1,39 @@
-#Megacron
+Megacron
+========
 
-##Introduction
+Introduction
+------------
 
 Wikimedia Distributed Cron
 
-##Installation
+Installation
+------------
 
-```
-sudo pip install megacron
-```
+To install just run:
+
+::
+
+    sudo pip install megacron
+
 or clone this repo and run:
-```
-sudo ./setup.py install
-```
 
-##Usage
+::
+
+    sudo ./setup.py install
+
+Usage
+-----
 
 Set the location of the database file to a shared filesystem in
-_/etc/megacron.d_
-```
-sudo megacrond&
-sudo megacrontab
-```
+``/etc/megacron.conf`` then run:
 
-##Commands
+::
+
+    sudo megacrond&
+    sudo megacrontab
+
+Commands
+--------
 
 megacrontab - Gets any existing crontab entries and allows the user to 
 add, modify or remove tasks using a standard text editor.
@@ -33,15 +43,18 @@ This must run as root.
 
 megacron-status - Prints out details about the current status.
 
-##Development
+Development
+-----------
 
 Clone this repo and run:
-```
-sudo ./setup.py develop
-```
+
+::
+
+    sudo ./setup.py develop
 
 To uninstall:
-```
-sudo ./setup.py develop --uninstall
-sudo rm /etc/megacron.conf /usr/bin/megacron*
-```
+
+::
+
+    sudo ./setup.py develop --uninstall
+    sudo rm /etc/megacron.conf /usr/bin/megacron*
