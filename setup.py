@@ -17,7 +17,12 @@ setup(
         ]
     },
     install_requires=['python-crontab', 'croniter'],
-    data_files=[('/etc', ['megacron.conf'])],
+    package_data={
+        'megacron': ['conf/megacron.conf']
+    },
+    data_files=[
+        ('/etc', ['megacron/conf/megacron.conf'])
+    ],
     url='https://www.mediawiki.org/wiki/Facebook_Open_Academy/Cron',
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
     long_description=open('README.rst').read()
