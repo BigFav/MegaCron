@@ -1,9 +1,9 @@
-import sys
+import pwd
+import os
 import subprocess
 from datetime import datetime, timedelta
 
-sys.path.append("../api")
-import api
+from megacron import api
 
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)
 HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)
@@ -44,7 +44,7 @@ def _run_schedules(events):
         time_to_run = schedule.time_to_run
         seconds_to_next_run = (time_to_run - datetime.now()).total_seconds()
         if seconds_to_next_run <= 0:
-            subprocess.call(schedule.job.command, shell=True)
+            _run_command(schedule.job.command, schedule.job.user_id)
             api.remove_schedule(schedule)
             _schedules.pop()
 
@@ -52,6 +52,21 @@ def _run_schedules(events):
                                                 _run_schedules, (events,))
 
     _run_schedules_event = None
+
+
+def _run_command(command, uid):
+    passwd = pwd.getpwuid(uid)
+
+    env = os.environ.copy()
+    env['HOME'] = passwd.pw_dir
+    env['LOGNAME'] = passwd.pw_name
+    env['USER'] = passwd.pw_name
+
+    def preexec():
+        os.setgid(passwd.pw_gid)
+        os.setuid(uid)
+
+    subprocess.Popen(command, preexec_fn=preexec, shell=True, env=env)
 
 
 def heartbeat(events):
