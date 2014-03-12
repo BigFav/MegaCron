@@ -51,7 +51,7 @@ def process_edits(uid, tb_file):
             interval = string.joinfields(tmp[:5], ' ')
             cmd = string.joinfields(tmp[5:], ' ')
             try:
-                valid_interval = croniter(interval) 
+                valid_interval = croniter(interval)
             except KeyError:
                 while True:
                     # Different syntax in Python 3 'input()'
