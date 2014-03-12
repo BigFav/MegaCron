@@ -5,14 +5,15 @@ import subprocess
 import tempfile
 from datetime import datetime
 
-from crontab import CronTab
+from croniter import croniter
 from megacron import api
 
 
-def getCrontab(uid, valid_crontab):
-    if (len(sys.argv) < 3) or (valid_crontab == False):
+def get_crontab(uid, valid_crontab):
+    remote_file = len(sys.argv) < 3
+    if remote_file or (valid_crontab is False):
         jobs_old = api.get_jobs_for_user(uid)
-        if valid_crontab == None:
+        if (valid_crontab is None) or remote_file:
             with tempfile.NamedTemporaryFile('w', delete=False) as temp:
                 for job in jobs_old:
                     temp.write("%s %s\n" % (job.interval, job.command))
@@ -33,7 +34,7 @@ def getCrontab(uid, valid_crontab):
             except OSError:
                 if len(sys.argv) < 3:
                     os.unlink(tb_file)
-                sys.exit("No text editor available. Please set your VISUAL" + \
+                sys.exit("No text editor available. Please set your VISUAL" +
                          " or EDITOR environment variable.")
 
     elif sys.argv[1] == '-u':
@@ -42,27 +43,27 @@ def getCrontab(uid, valid_crontab):
     return tb_file
 
 
-def processEdits(uid, tb_file):
+def process_edits(uid, tb_file):
     jobs_new = []
     with open(tb_file, 'r') as tab:
-        cron = CronTab()
         for line in tab:
             tmp = line.strip().split(' ')
             interval = string.joinfields(tmp[:5], ' ')
             cmd = string.joinfields(tmp[5:], ' ')
-            job = cron.new(command=cmd)
-            valid_interval = job.setall(interval)
-            if not job.is_valid() or not valid_interval:
-                # Different syntax in Python 3 'input()'
-                cont = raw_input(
-                       "The crontab you entered has invalid " + \
-                       "entries, would you like to edit it again? (y/n)\n")
-                if cont == 'n':
-                    if len(sys.argv) < 3:
-                        os.unlink(tb_file)
-                    sys.exit(1)
-                elif cont == 'y':
-                    return False
+            try:
+                valid_interval = croniter(interval) 
+            except KeyError:
+                while True:
+                    # Different syntax in Python 3 'input()'
+                    cont = raw_input("The crontab you entered has invalid " +
+                                     "entries, would you like to edit it " +
+                                     "again? (y/n)\n")
+                    if cont == 'n':
+                        if len(sys.argv) < 3:
+                            os.unlink(tb_file)
+                        sys.exit(1)
+                    elif cont == 'y':
+                        return False
             jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
     if len(sys.argv) < 3:
@@ -76,8 +77,8 @@ def main():
     uid = os.getuid()
     valid_crontab = None
     while not valid_crontab:
-        tb_file = getCrontab(uid, valid_crontab)
-        valid_crontab = processEdits(uid, tb_file)
+        tb_file = get_crontab(uid, valid_crontab)
+        valid_crontab = process_edits(uid, tb_file)
 
 
 if __name__ == '__main__':
