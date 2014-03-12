@@ -9,8 +9,7 @@ from croniter import croniter
 from megacron import api
 
 
-def get_crontab(uid, valid_crontab):
-    remote_file = len(sys.argv) < 3
+def get_crontab(uid, valid_crontab, remote_file):
     if remote_file or (valid_crontab is False):
         jobs_old = api.get_jobs_for_user(uid)
         if (valid_crontab is None) or remote_file:
@@ -32,7 +31,7 @@ def get_crontab(uid, valid_crontab):
             try:
                 subprocess.check_call(["vi", str(tb_file)])
             except OSError:
-                if len(sys.argv) < 3:
+                if remote_file:
                     os.unlink(tb_file)
                 sys.exit("No text editor available. Please set your VISUAL" +
                          " or EDITOR environment variable.")
@@ -43,7 +42,7 @@ def get_crontab(uid, valid_crontab):
     return tb_file
 
 
-def process_edits(uid, tb_file):
+def process_edits(uid, tb_file, remote_file):
     jobs_new = []
     with open(tb_file, 'r') as tab:
         for line in tab:
@@ -57,16 +56,16 @@ def process_edits(uid, tb_file):
                     # Different syntax in Python 3 'input()'
                     cont = raw_input("The crontab you entered has invalid " +
                                      "entries, would you like to edit it " +
-                                     "again? (y/n)\n")
+                                     "again? (y/n) ")
                     if cont == 'n':
-                        if len(sys.argv) < 3:
+                        if remote_file:
                             os.unlink(tb_file)
                         sys.exit(1)
                     elif cont == 'y':
                         return False
             jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
-    if len(sys.argv) < 3:
+    if remote_file:
         os.unlink(tb_file)
 
     api.set_jobs(jobs_new, uid)
@@ -76,9 +75,10 @@ def process_edits(uid, tb_file):
 def main():
     uid = os.getuid()
     valid_crontab = None
+    using_remote_file = len(sys.argv) < 3
     while not valid_crontab:
-        tb_file = get_crontab(uid, valid_crontab)
-        valid_crontab = process_edits(uid, tb_file)
+        tb_file = get_crontab(uid, valid_crontab, using_remote_file)
+        valid_crontab = process_edits(uid, tb_file, using_remote_file)
 
 
 if __name__ == '__main__':
