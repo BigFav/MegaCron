@@ -51,17 +51,17 @@ def process_edits(uid, tb_file, remote_file):
             cmd = string.joinfields(tmp[5:], ' ')
             try:
                 valid_interval = croniter(interval)
-            except KeyError:
+            except (KeyError, ValueError):
                 while True:
                     # Different syntax in Python 3 'input()'
                     cont = raw_input("The crontab you entered has invalid " +
                                      "entries, would you like to edit it " +
                                      "again? (y/n) ")
-                    if cont == 'n':
+                    if (cont == 'n') or (cont == 'N'):
                         if remote_file:
                             os.unlink(tb_file)
                         sys.exit(1)
-                    elif cont == 'y':
+                    elif (cont == 'y') or (cont == 'Y'):
                         return False
             jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
@@ -79,7 +79,3 @@ def main():
     while not valid_crontab:
         tb_file = get_crontab(uid, valid_crontab, using_remote_file)
         valid_crontab = process_edits(uid, tb_file, using_remote_file)
-
-
-if __name__ == '__main__':
-    main()
