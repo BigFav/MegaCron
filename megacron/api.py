@@ -1,6 +1,7 @@
 import pickle
 import os
 import fcntl
+import errno
 from datetime import datetime
 from collections import deque
 
@@ -42,210 +43,154 @@ class Worker:
 
 
 def get_jobs():
-    return _read_file()['jobs']
+    with OpenFileLocked() as file:
+        return file['jobs']
 
 
 def get_jobs_for_user(user_id):
-    jobs = _read_file()['jobs']
-    return [job for job in jobs if job.user_id == user_id]
+    with OpenFileLocked() as file:
+        return [j for j in file['jobs'] if j.user_id == user_id]
 
 
 def set_jobs(jobs, user_id):
-    file = _read_file()
+    with OpenFileLocked(write=True) as file:
+        # Give them an id if they don't already have one
+        for job in jobs:
+            if job._id is None:
+                job._id = file['next_job_id']
+                file['next_job_id'] += 1
 
-    # Give them an id if they don't already have one
-    for job in jobs:
-        if job._id is None:
-            job._id = file['next_job_id']
-            file['next_job_id'] += 1
-
-    file['jobs'] = [job for job in file['jobs'] if job.user_id != user_id]
-    file['jobs'].extend(jobs)
-
-    _write_file(file)
-
-
-def set_job_fun(file, job):
-    for f_job in file['jobs']:
-        if f_job._id == job._id:
-            f_job.last_time_run = job.last_time_run
-            return
+        file['jobs'] = [j for j in file['jobs'] if j.user_id != user_id]
+        file['jobs'].extend(jobs)
 
 
 def set_job_time(job):
-    _rw_file_l(set_job_fun, job)
+    with OpenFileLocked(write=True) as file:
+        for f_job in file['jobs']:
+            if f_job._id == job._id:
+                f_job.last_time_run = job.last_time_run
+                return
 
 
 def get_schedules(worker):
-    schedules = _read_file_l()['schedules']
-    return [schedule for schedule in schedules if schedule.worker == worker]
-
-
-def add_schedules_fun(file, schedules):
-    # Give them an id if they don't already have one
-    for schedule in schedules:
-        if schedule._id is None:
-            schedule._id = file['next_schedule_id']
-            file['next_schedule_id'] += 1
-
-    file['schedules'].extend(schedules)
+    with OpenFileLocked() as file:
+        return [s for s in file['schedules'] if s.worker == worker]
 
 
 def add_schedules(schedules):
-    _rw_file_l(add_schedules_fun, schedules)
+    with OpenFileLocked(write=True) as file:
+        # Give them an id if they don't already have one
+        for schedule in schedules:
+            if schedule._id is None:
+                schedule._id = file['next_schedule_id']
+                file['next_schedule_id'] += 1
 
-
-def add_schedule_fun(file, schedule):
-    file['schedules'].append(schedule)
+        file['schedules'].extend(schedules)
 
 
 def add_schedule(schedule):
-    _rw_file_l(add_schedule_fun, schedule)
-
-
-def remove_schedule_fun(file, schedule):
-    file['schedules'].remove(schedule)
+    with OpenFileLocked(write=True) as file:
+        file['schedules'].append(schedule)
 
 
 def remove_schedule(schedule):
-    _rw_file_l(remove_schedule_fun, schedule)
+    with OpenFileLocked(write=True) as file:
+        file['schedules'].remove(schedule)
 
 
 def get_heartbeat(worker):
-    workers = _read_file()['workers']
-    for w in workers:
-        if w == worker:
-            return w
-            break
+    with OpenFileLocked() as file:
+        for w in file['workers']:
+            if w == worker:
+                return w
+                break
 
     return None
 
 
 def update_heartbeat(worker):
-    file = _read_file()
-    for w in file['workers']:
-        if w == worker:
-            w.heartbeat = datetime.now()
-            break
-
-    _write_file(file)
+    with OpenFileLocked(write=True) as file:
+        for w in file['workers']:
+            if w == worker:
+                w.heartbeat = datetime.now()
+                break
 
 
 def get_next_worker():
-    file = _read_file()
+    with OpenFileLocked(write=True) as file:
+        workers = file['workers']
+        if len(workers) == 0:
+            return None
 
-    workers = file['workers']
-    if len(workers) == 0:
-        return None
+        next_worker = workers.popleft()
+        workers.append(next_worker)
 
-    next_worker = workers.popleft()
-    workers.append(next_worker)
-
-    _write_file(file)
     return next_worker
 
 
 def get_workers():
-    return _read_file_l()['workers']
+    with OpenFileLocked() as file:
+        return file['workers']
 
 
-def create_worker_fun(file, null):
-    id = file['next_worker_id']
+def create_worker():
     worker = Worker(datetime.now(), id)
-    file['workers'].append(worker)
-    file['next_worker_id'] += 1
+
+    with OpenFileLocked(write=True) as file:
+        worker._id = file['next_worker_id']
+        file['workers'].append(worker)
+        file['next_worker_id'] += 1
 
     return worker
 
 
-def create_worker():
-    return _rw_file_l(create_worker_fun, "")
-
-
-def destroy_worker_fun(file, worker):
-    file['workers'].remove(worker)
-
-
 def destroy_worker(worker):
-    _rw_file_l(destroy_worker_fun, worker)
+    with OpenFileLocked(write=True) as file:
+        file['workers'].remove(worker)
 
 
-def _read_file():
-    try:
-        with open(FILE_NAME, "rb") as file:
-            return pickle.load(file)
-    except IOError:
-        return {
-            'jobs': [],
-            'schedules': [],
-            'workers': deque(),
-            'next_job_id': 1,
-            'next_schedule_id': 1,
-            'next_worker_id': 1
-        }
+class OpenFileLocked:
+    def __init__(self, write=False):
+        self._write = write
 
+    def __enter__(self):
+        # Create directory if it doesn't exist
+        dir_name = os.path.dirname(FILE_NAME)
+        try:
+            os.makedirs(dir_name)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
-def _write_file(data):
-    dir_name = os.path.dirname(FILE_NAME)
-    try:
-        os.makedirs(dir_name)
-    except OSError:
-        if not os.path.isdir(dir_name):
-            raise
+        # Open file with a lock and create it if it doesn't exist
+        flag = os.O_RDWR if self._write is True else os.O_RDONLY
+        mode = "rb+" if self._write is True else "rb"
+        self._file = os.fdopen(os.open(FILE_NAME, os.O_CREAT | flag), mode)
 
-    with open(FILE_NAME+'~', "wb") as file:
-        pickle.dump(data, file)
-    os.rename(FILE_NAME+'~', FILE_NAME)
+        # Acquire a file lock
+        op = fcntl.LOCK_EX if self._write is True else fcntl.LOCK_SH
+        fcntl.flock(self._file.fileno(), op)
 
+        try:
+            self.data = pickle.load(self._file)
+        except EOFError:
+            self.data = {
+                'jobs': [],
+                'schedules': [],
+                'workers': deque(),
+                'next_job_id': 1,
+                'next_schedule_id': 1,
+                'next_worker_id': 1
+            }
 
-def _read_file_l():
-    try:
-        with open(FILE_NAME, "rb") as file:
-            fcntl.flock(file.fileno(), fcntl.LOCK_EX)
-            load = pickle.load(file)
-            fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-        return load
-    except IOError:
-        return {
-            'jobs': [],
-            'schedules': [],
-            'workers': deque(),
-            'next_job_id': 1,
-            'next_schedule_id': 1,
-            'next_worker_id': 1
-        }
+        if self._write is False:
+            self._file.close()
 
+        return self.data
 
-def _write_file_l(data):
-    dir_name = os.path.dirname(FILE_NAME)
-    try:
-        os.makedirs(dir_name)
-    except OSError:
-        if not os.path.isdir(dir_name):
-            raise
-
-    with open(FILE_NAME, "wb") as file:
-        fcntl.flock(file.fileno(), fcntl.LOCK_EX)
-        pickle.dump(data, file)
-        fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-
-
-def _rw_file_l(f, data):
-    dir_name = os.path.dirname(FILE_NAME)
-    try:
-        os.makedirs(dir_name)
-    except OSError:
-        if not os.path.isdir(dir_name):
-            raise
-
-    with open(FILE_NAME, "rb+") as fd:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-        file = pickle.load(fd)
-
-        ret = f(file, data)
-
-        fd.seek(0)
-        pickle.dump(file, fd)
-        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-
-    return ret
+    def __exit__(self, type, value, traceback):
+        if self._write is True:
+            self._file.truncate()
+            self._file.seek(0)
+            pickle.dump(self.data, self._file, protocol=2)
+            self._file.close()
