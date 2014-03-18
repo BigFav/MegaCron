@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 
 from setuptools import setup, find_packages
 
