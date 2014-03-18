@@ -9,7 +9,7 @@ from megacron import api
 
 TAB_FILE = './test.tab'
 uid = os.getuid()
-NUM_OF_JOBS = 5 
+NUM_OF_JOBS = 5
 cron_strings = {}
 
 def create_test_tab():
