@@ -1,6 +1,3 @@
-db.p
-*.tab
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -57,3 +54,5 @@ docs/_build/
 MANIFEST
 dist/
 build/
+*.tab
+*.p
