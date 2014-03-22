@@ -39,7 +39,7 @@ def get_num_users():
 def get_num_schedules():
     sum = 0
     for worker in API.get_workers():
-        sum += len(API.get_schedules(worker)):
+        sum += len(API.get_schedules(worker))
     if (sum == 1):
         print "There is 1 schedule"
     else:
