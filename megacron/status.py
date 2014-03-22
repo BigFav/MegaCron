@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 
-from megacron import API
+from megacron import api
 
 def get_worker_status():
     L = len(API.get_workers())
