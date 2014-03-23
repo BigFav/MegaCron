@@ -25,7 +25,7 @@ def get_next_schedule_time():
     comp = datetime.max
     for worker in api.get_workers():
         for schedule in api.get_schedules(worker):
-            if (schedule.time_to_run < comp and schedule.time_to_run > now):
+            if (comp > schedule.time_to_run > now):
                 comp = schedule.time_to_run
     print "The next job will be ran at " + comp.strftime("%d %B %Y %I:%M%p")
 
