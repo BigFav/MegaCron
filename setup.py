@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Megacron',
-    version='0.3',
+    version='0.3.2',
     description='Distributed Cron Replacement',
     author='John Tanner, Favian Contreras, Ben Zeghers',
     author_email='megacronteam@gmail.com',
