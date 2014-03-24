@@ -48,7 +48,7 @@ class TestJobsFunctions(unittest.TestCase):
         self.test_jobs = create_test_tab(num_of_jobs) # create a crontab with 0 jobs
         api.set_jobs(self.test_jobs, uid)
         self.jobs_list = api.get_jobs()
-        self.assertEqual(len(self.jobs_list), len(self.test_jobs)) # check that number of jobs is equal to num_of_jobs
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
         test_job_fields(self)
         cleanup()
 
@@ -57,7 +57,7 @@ class TestJobsFunctions(unittest.TestCase):
         self.test_jobs = create_test_tab(num_of_jobs) # create a crontab with 1 job
         api.set_jobs(self.test_jobs, uid)
         self.jobs_list = api.get_jobs()
-        self.assertEqual(len(self.jobs_list), len(self.test_jobs)) # check that number of jobs is equal to num_of_jobs
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
         test_job_fields(self)
         cleanup()
 
@@ -66,7 +66,7 @@ class TestJobsFunctions(unittest.TestCase):
         self.test_jobs = create_test_tab(num_of_jobs) # create a crontab with 100 jobs
         api.set_jobs(self.test_jobs, uid)
         self.jobs_list = api.get_jobs()
-        self.assertEqual(len(self.jobs_list), len(self.test_jobs)) # check that number of jobs is equal to num_of_jobs
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
         test_job_fields(self)
         cleanup()
 

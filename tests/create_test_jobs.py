@@ -9,7 +9,6 @@ from megacron import api
 
 TAB_FILE = './test.tab'
 uid = os.getuid()
-cron_strings = {}
 
 def cleanup():
     if(os.access(TAB_FILE, os.F_OK)):
@@ -28,11 +27,13 @@ def test_job_fields(self):
         current += 1
 
 def create_test_tab(num_of_jobs):
+    cron_strings = {}
+
     job_num = 1
     while job_num <= num_of_jobs:
         cron_strings.setdefault(job_num, [])
-        create_test_intervals(job_num)
-        cron_strings[job_num].append(create_test_commands(job_num))
+        create_test_intervals(cron_strings[job_num])
+        cron_strings[job_num].append(create_test_commands(job_num, cron_strings[job_num]))
         job_num += 1
 
     with open(TAB_FILE,'w') as tab:
@@ -42,6 +43,7 @@ def create_test_tab(num_of_jobs):
     tab.close()
 
     test_jobs = []
+    
     with open(TAB_FILE, 'r') as tab:
         for job in tab:
             tmp = job.strip().split(' ')
@@ -51,14 +53,14 @@ def create_test_tab(num_of_jobs):
     tab.close()
     return test_jobs
 
-def create_test_commands(job_num):
+def create_test_commands(job_num, cron_job):
     job_string = str(job_num)
     command_strings = [' echo test ' + job_string + '\n', ' echo test ' \
     + job_string + ' > ' + job_string + '.txt \n']
 
     return (command_strings[random.randrange(len(command_strings))])
 
-def create_test_intervals(job_num):
+def create_test_intervals(cron_job):
     fields = []
 
     minute = random.randrange(0,59)
@@ -79,4 +81,4 @@ def create_test_intervals(job_num):
         fields.append(str(field))
         interval_strings = ' '.join(fields)
     
-    cron_strings[job_num].append(interval_strings)
+    cron_job.append(interval_strings)
