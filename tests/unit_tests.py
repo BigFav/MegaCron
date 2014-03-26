@@ -48,27 +48,27 @@ class TestJobsFunctions(unittest.TestCase):
         num_of_jobs = 0
         self.test_jobs = create_test_tab(num_of_jobs, uids['uid1']) # create a crontab with 0 jobs
         api.set_jobs(self.test_jobs, uids['uid1'])
-        self.jobs_list_uid1= api.get_jobs()
-        self.assertEqual(len(self.jobs_list_uid1), num_of_jobs) # check that number of jobs is equal to num_of_jobs
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid1) # verify that the information we get is the same as what was set
+        self.jobs_list = api.get_jobs()
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
+        current = test_job_fields(self, self.test_jobs, uids['uid1'], self.jobs_list) # verify that the information we get is the same as what was set
         cleanup()
 
     def test_get_jobs_one(self):
         num_of_jobs = 1
         self.test_jobs = create_test_tab(num_of_jobs, uids['uid1']) # create a crontab with 1 job
         api.set_jobs(self.test_jobs, uids['uid1'])
-        self.jobs_list_uid1= api.get_jobs()
-        self.assertEqual(len(self.jobs_list_uid1), num_of_jobs) # check that number of jobs is equal to num_of_jobs
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid1) # verify that the information we get is the same as what was set
+        self.jobs_list = api.get_jobs()
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
+        current = test_job_fields(self, self.test_jobs, uids['uid1'], self.jobs_list) # verify that the information we get is the same as what was set
         cleanup()
 
     def test_get_jobs_many(self):
         num_of_jobs = 10
         self.test_jobs = create_test_tab(num_of_jobs, uids['uid1']) # create a crontab with 10 jobs
         api.set_jobs(self.test_jobs, uids['uid1'])
-        self.jobs_list_uid1= api.get_jobs()
-        self.assertEqual(len(self.jobs_list_uid1), num_of_jobs) # check that number of jobs is equal to num_of_jobs
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid1) # verify that the information we get is the same as what was set
+        self.jobs_list = api.get_jobs()
+        self.assertEqual(len(self.jobs_list), num_of_jobs) # check that number of jobs is equal to num_of_jobs
+        current = test_job_fields(self, self.test_jobs, uids['uid1'], self.jobs_list) # verify that the information we get is the same as what was set
         cleanup()
 
 #### TEST GET_JOBS_FOR_USER(uid) ####
@@ -89,24 +89,24 @@ class TestJobsFunctions(unittest.TestCase):
         cleanup()
 
     def test_get_jobs_for_user_multiple(self):
-        num_of_jobs1 = 1
-        self.test_jobs = create_test_tab(num_of_jobs1, uids['uid1']) # add 1 job to the tabfile for uids['uid1']
-        api.set_jobs(self.test_jobs, uids['uid1'])
+        num_of_jobs_uid1 = 1
+        self.test_jobs_uid1 = create_test_tab(num_of_jobs_uid1, uids['uid1']) # add 1 job to the tabfile for uids['uid1']
+        api.set_jobs(self.test_jobs_uid1, uids['uid1'])
         self.jobs_list_uid1 = api.get_jobs_for_user(uids['uid1'])
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid1) # verify that the information we get is the same as what was set
-        num_of_jobs2 = 0
-        self.test_jobs = create_test_tab(num_of_jobs2, uids['uid2']) # add 0 jobs to the tabfile for uids['uid1']
-        api.set_jobs(self.test_jobs, uids['uid2'])
+        num_of_jobs_uid2 = 0
+        self.test_jobs_uid2 = create_test_tab(num_of_jobs_uid2, uids['uid2']) # add 0 jobs to the tabfile for uids['uid1']
+        api.set_jobs(self.test_jobs_uid2, uids['uid2'])
         self.jobs_list_uid2 = api.get_jobs_for_user(uids['uid2'])
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid2) # verify that the information we get is the same as what was set
-        num_of_jobs3 = 4
-        self.test_jobs = create_test_tab(num_of_jobs3, uids['uid3']) # add 4 jobs to the tabfile for uids['uid1']
-        api.set_jobs(self.test_jobs, uids['uid3'])
+        num_of_jobs_uid3 = 4
+        self.test_jobs_uid3 = create_test_tab(num_of_jobs_uid3, uids['uid3']) # add 4 jobs to the tabfile for uids['uid1']
+        api.set_jobs(self.test_jobs_uid3, uids['uid3'])
         self.jobs_list_uid3 = api.get_jobs_for_user(uids['uid3'])
-        test_job_fields(self, uids['uid1'], self.jobs_list_uid3) # verify that the information we get is the same as what was set
-        self.assertEqual(len(self.jobs_list_uid1), num_of_jobs1) # check that number of jobs for uids['uid1'] is equal to num_of_jobs1
-        self.assertEqual(len(self.jobs_list_uid2), num_of_jobs2) # check that number of jobs for uid2 is equal to num_of_jobs2
-        self.assertEqual(len(self.jobs_list_uid3), num_of_jobs3) # check that number of jobs for uid2 is equal to num_of_jobs3
+        test_job_fields(self, self.test_jobs_uid1, uids['uid1'], self.jobs_list_uid1) # verify that the information we get is the same as what was set
+        test_job_fields(self, self.test_jobs_uid2, uids['uid2'], self.jobs_list_uid2) # verify that the information we get is the same as what was set
+        test_job_fields(self, self.test_jobs_uid3, uids['uid3'], self.jobs_list_uid3) # verify that the information we get is the same as what was set
+        self.assertEqual(len(self.jobs_list_uid1), num_of_jobs_uid1) # check that number of jobs for uids['uid1'] is equal to num_of_jobs1
+        self.assertEqual(len(self.jobs_list_uid2), num_of_jobs_uid2) # check that number of jobs for uid2 is equal to num_of_jobs2
+        self.assertEqual(len(self.jobs_list_uid3), num_of_jobs_uid3) # check that number of jobs for uid2 is equal to num_of_jobs3
         cleanup()
 
 if __name__ == '__main__':

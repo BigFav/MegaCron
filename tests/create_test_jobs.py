@@ -18,15 +18,16 @@ def cleanup():
     if(os.access(api.FILE_NAME, os.F_OK)):
         os.remove(api.FILE_NAME)
 
-def test_job_fields(self, uid, jobs_list):
+def test_job_fields(self, test_jobs, uid, jobs_list):
     current = 0
-    while current < len(jobs_list):
-        self.assertEqual(jobs_list[current].interval, self.test_jobs[current].interval)
-        self.assertEqual(jobs_list[current].command, self.test_jobs[current].command)
-        self.assertEqual(jobs_list[current].user_id, self.test_jobs[current].user_id)
-        self.assertEqual(jobs_list[current].last_time_run, self.test_jobs[current].last_time_run)
-        self.assertEqual(jobs_list[current]._id, self.test_jobs[current]._id)
+    for job in jobs_list:
+        self.assertEqual(job.interval, test_jobs[current].interval)
+        self.assertEqual(job.command, test_jobs[current].command)
+        self.assertEqual(job.user_id, test_jobs[current].user_id)
+        self.assertEqual(job.last_time_run, test_jobs[current].last_time_run)
+        self.assertEqual(job._id, test_jobs[current]._id)
         current += 1
+    return current
 
 def create_test_tab(num_of_jobs, uid):
     cron_strings = {}
