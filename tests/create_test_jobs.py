@@ -8,7 +8,9 @@ from datetime import datetime
 from megacron import api
 
 TAB_FILE = './test.tab'
+
 uid = os.getuid()
+uids = { 'uid1': uid+1, 'uid2': uid+2, 'uid3':uid+3 }
 
 def cleanup():
     if(os.access(TAB_FILE, os.F_OK)):
@@ -16,17 +18,17 @@ def cleanup():
     if(os.access(api.FILE_NAME, os.F_OK)):
         os.remove(api.FILE_NAME)
 
-def test_job_fields(self):
+def test_job_fields(self, uid, jobs_list):
     current = 0
-    while current < len(self.jobs_list):
-        self.assertEqual(self.jobs_list[current].interval, self.test_jobs[current].interval)
-        self.assertEqual(self.jobs_list[current].command, self.test_jobs[current].command)
-        self.assertEqual(self.jobs_list[current].user_id, self.test_jobs[current].user_id)
-        self.assertEqual(self.jobs_list[current].last_time_run, self.test_jobs[current].last_time_run)
-        self.assertEqual(self.jobs_list[current]._id, self.test_jobs[current]._id)
+    while current < len(jobs_list):
+        self.assertEqual(jobs_list[current].interval, self.test_jobs[current].interval)
+        self.assertEqual(jobs_list[current].command, self.test_jobs[current].command)
+        self.assertEqual(jobs_list[current].user_id, self.test_jobs[current].user_id)
+        self.assertEqual(jobs_list[current].last_time_run, self.test_jobs[current].last_time_run)
+        self.assertEqual(jobs_list[current]._id, self.test_jobs[current]._id)
         current += 1
 
-def create_test_tab(num_of_jobs):
+def create_test_tab(num_of_jobs, uid):
     cron_strings = {}
 
     job_num = 1
