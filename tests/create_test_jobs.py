@@ -51,7 +51,6 @@ def create_test_tab(num_of_jobs, uid):
         for line in cron_strings.iterkeys():
             for item in cron_strings[line]:
                 tab.write(item)
-    tab.close()
     # Will contain assembled job-interval strings
     test_jobs = []
     with open(TAB_FILE, 'r') as tab:
@@ -60,7 +59,6 @@ def create_test_tab(num_of_jobs, uid):
             interval = string.joinfields(tmp[:5], ' ')
             cmd = string.joinfields(tmp[5:], ' ')
             test_jobs.append(api.Job(interval, cmd, uid, datetime.now()))
-    tab.close()
     return test_jobs
 
 def create_test_commands(job_num, cron_job):

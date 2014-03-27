@@ -207,7 +207,7 @@ class TestJobsFunctions(unittest.TestCase):
         num_of_workers = 10
         test_workers = []
         chkpnt1 = datetime.now()
-        for job in xrange(num_of_workers):
+        for job in range(num_of_workers):
         	# Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
         chkpnt2 = datetime.now()
@@ -239,7 +239,7 @@ class TestJobsFunctions(unittest.TestCase):
     def test_get_workers_many_workers(self):
     	num_of_workers = 10
         test_workers = []
-        for job in xrange(num_of_workers):
+        for job in range(num_of_workers):
         	# Create workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
     	workers_list = api.get_workers()
@@ -267,10 +267,10 @@ class TestJobsFunctions(unittest.TestCase):
     	num_of_workers = 1
     	num_of_requests = 10
     	test_workers, workers_list = [], []
-    	for request in xrange(num_of_requests):
+    	for request in range(num_of_requests):
     		 # Create workers and add them to a list for bookkeeping
     	    test_workers.append(api.create_worker())
-    	for request in xrange(num_of_requests):
+    	for request in range(num_of_requests):
     		# Get workers and add them to a list for bookkeeping
     	    workers_list.append(api.get_next_worker())
     	    # Verify that the workers list contains
