@@ -18,8 +18,6 @@ def get_crontab(uid, valid_crontab, remote_file, tb_file):
                     temp.write("%s %s\n" % (job.interval, job.command))
 
                 tb_file = temp.name
-        elif remote_file is False:
-            tb_file = sys.argv[2]
 
         visual = os.getenv('VISUAL')
         editor = os.getenv('EDITOR')
