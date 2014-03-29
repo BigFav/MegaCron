@@ -1,2 +1,4 @@
 include README.rst
 include megacron/conf/megacron.conf
+
+recursive-exclude tests *

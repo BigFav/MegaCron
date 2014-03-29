@@ -32,9 +32,9 @@ def check_job_fields(self, jobs_list, test_jobs, uid):
 
 def check_worker_fields(self, workers_list, test_workers):
     current = 0
-    for worker in workers_list:
-        self.assertEqual(worker.heartbeat, test_workers[current].heartbeat)
-        self.assertEqual(worker._id, test_workers[current]._id)
+    for worker in test_workers:
+        self.assertEqual(worker.heartbeat, workers_list[current].heartbeat)
+        self.assertEqual(worker._id, workers_list[current]._id)
         current += 1
 
 def create_test_tab(num_of_jobs, uid):
