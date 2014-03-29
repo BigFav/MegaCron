@@ -9,16 +9,16 @@ from croniter import croniter
 from megacron import api
 
 
-def get_crontab(uid, valid_crontab, remote_file):
+def get_crontab(uid, valid_crontab, remote_file, tb_file):
     if remote_file or (valid_crontab is False):
         jobs_old = api.get_jobs_for_user(uid)
-        if (valid_crontab is None) or remote_file:
+        if remote_file and (valid_crontab is None):
             with tempfile.NamedTemporaryFile('w', delete=False) as temp:
                 for job in jobs_old:
                     temp.write("%s %s\n" % (job.interval, job.command))
 
                 tb_file = temp.name
-        else:
+        elif remote_file is False:
             tb_file = sys.argv[2]
 
         visual = os.getenv('VISUAL')
@@ -33,8 +33,8 @@ def get_crontab(uid, valid_crontab, remote_file):
             except OSError:
                 if remote_file:
                     os.unlink(tb_file)
-                sys.exit("No text editor available. Please set your VISUAL" +
-                         " or EDITOR environment variable.")
+                sys.exit("No text editor available. Please set your VISUAL"
+                         "or EDITOR environment variable.")
 
     elif sys.argv[1] == '-u':
         tb_file = sys.argv[2]
@@ -42,7 +42,7 @@ def get_crontab(uid, valid_crontab, remote_file):
     return tb_file
 
 
-def process_edits(uid, tb_file, remote_file):
+def process_edits(uid, tb_file, using_remote_file):
     jobs_new = []
     with open(tb_file, 'r') as tab:
         for line in tab:
@@ -54,18 +54,18 @@ def process_edits(uid, tb_file, remote_file):
             except (KeyError, ValueError):
                 while True:
                     # Different syntax in Python 3 'input()'
-                    cont = raw_input("The crontab you entered has invalid " +
-                                     "entries, would you like to edit it " +
+                    cont = raw_input("The crontab you entered has invalid "
+                                     "entries, would you like to edit it "
                                      "again? (y/n) ")
                     if (cont == 'n') or (cont == 'N'):
-                        if remote_file:
+                        if using_remote_file:
                             os.unlink(tb_file)
                         sys.exit(1)
                     elif (cont == 'y') or (cont == 'Y'):
                         return False
             jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
 
-    if remote_file:
+    if using_remote_file:
         os.unlink(tb_file)
 
     api.set_jobs(jobs_new, uid)
@@ -74,8 +74,9 @@ def process_edits(uid, tb_file, remote_file):
 
 def main():
     uid = os.getuid()
+    tb_file = None
     valid_crontab = None
     using_remote_file = len(sys.argv) < 3
     while not valid_crontab:
-        tb_file = get_crontab(uid, valid_crontab, using_remote_file)
+        tb_file = get_crontab(uid, valid_crontab, using_remote_file, tb_file)
         valid_crontab = process_edits(uid, tb_file, using_remote_file)
