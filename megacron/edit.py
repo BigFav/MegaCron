@@ -48,7 +48,7 @@ def process_edits(uid, tb_file, using_remote_file):
             interval = string.joinfields(tmp[:5], ' ')
             cmd = string.joinfields(tmp[5:], ' ')
             try:
-                valid_interval = croniter(interval)
+                croniter(interval)
             except (KeyError, ValueError):
                 while True:
                     # Different syntax in Python 3 'input()'
