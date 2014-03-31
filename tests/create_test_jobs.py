@@ -37,6 +37,13 @@ def check_worker_fields(self, workers_list, test_workers):
         self.assertEqual(worker._id, workers_list[current]._id)
         current += 1
 
+def check_worker_fields(self, workers_list, test_workers):
+    current = 0
+    for worker in test_workers:
+        self.assertEqual(worker.heartbeat, workers_list[current].heartbeat)
+        self.assertEqual(worker._id, workers_list[current]._id)
+        current += 1
+
 def create_test_tab(num_of_jobs, uid):
     # Will contain parsed auto-generated crontab entries
     cron_strings = {}
