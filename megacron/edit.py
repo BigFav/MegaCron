@@ -19,7 +19,6 @@ def _print_usage(self, file=None):
                        "{-e | -r | -l | file}",
                        self.format_usage())
     self._print_message(usage_str, file)
-
 argparse.ArgumentParser.print_usage = _print_usage
 
 
@@ -30,20 +29,20 @@ def _print_help(self, file=None):
                       "{-e | -r | -l | file}",
                       self.format_help())
     self._print_message(help_str, file)
-
 argparse.ArgumentParser.print_help = _print_help
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Gets options for crontab "
                                                  "editor.")
     parser.add_argument('-u', action="store", dest="usr", nargs='?',
-                        help="User of whose crontab to use. Will use the "
-                             "current user's crontab, if no user is specified.")
+                        help="User of whose crontab to use. Will use current "
+                             "user's crontab, if no user is specified.")
     parser.add_argument('-i', action="store_true", dest="rm_prompt",
                         help="The -i option modifies the -r option to prompt "
                              "the user for a 'y/Y' response before actually "
                              "removing the crontab.")
-    
+
     # Cannot have multiple commands at once
     commands = parser.add_mutually_exclusive_group()
     commands.add_argument('-e', action="store_true", dest="edit",
@@ -58,7 +57,7 @@ def parse_args():
                                "standard output.")
     commands.add_argument('file', nargs='?', default=False,
                           help="File to overwrite current crontab.")
-    
+
     opts = parser.parse_args()
     # Ensure at least one command was selected
     if not (opts.file or opts.edit or opts.lst or opts.rm):
@@ -76,7 +75,7 @@ def get_crontab(opts, valid_crontab, tb_file):
             lst = old_cron if old_cron else "No crontab for %s." % opts.usr[1]
             print lst
             sys.exit(0)
-        
+
         # Perform an edit in text editor
         if (opts.file is False) and (valid_crontab is None):
             # Write remote crontab to tempfile if it hasn't been written
@@ -173,5 +172,3 @@ def main():
     while not valid_crontab:
         tb_file = get_crontab(opts, valid_crontab, tb_file)
         valid_crontab = process_edits(opts.usr[0], tb_file, opts.file)
-
-main()
