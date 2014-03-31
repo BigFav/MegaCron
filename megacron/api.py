@@ -11,10 +11,10 @@ FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 
 
 class Job:
-    def __init__(self, interval, command, user_id, last_time_run, _id=None):
+    def __init__(self, interval, command, uid, last_time_run, _id=None):
         self.interval = interval
         self.command = command
-        self.user_id = user_id
+        self.uid = uid
         self.last_time_run = last_time_run
         self._id = _id
 
@@ -47,12 +47,12 @@ def get_jobs():
         return file['jobs']
 
 
-def get_jobs_for_user(user_id):
+def get_jobs_for_user(uid):
     with OpenFileLocked() as file:
-        return [j for j in file['jobs'] if j.user_id == user_id]
+        return [j for j in file['jobs'] if j.uid == uid]
 
 
-def set_jobs(jobs, user_id):
+def set_jobs(jobs, uid):
     with OpenFileLocked(write=True) as file:
         # Give them an id if they don't already have one
         for job in jobs:
@@ -60,7 +60,7 @@ def set_jobs(jobs, user_id):
                 job._id = file['next_job_id']
                 file['next_job_id'] += 1
 
-        file['jobs'] = [j for j in file['jobs'] if j.user_id != user_id]
+        file['jobs'] = [j for j in file['jobs'] if j.uid != uid]
         file['jobs'].extend(jobs)
 
 
@@ -149,6 +149,16 @@ def destroy_worker(worker):
         file['workers'].remove(worker)
 
 
+def get_crontab(uid):
+    with OpenFileLocked(write=False) as file:
+        return file['crontab'].get(uid, '')
+
+
+def set_crontab(crontab, uid):
+    with OpenFileLocked(write=True) as file:
+        file['crontab'][uid] = crontab
+
+
 class OpenFileLocked:
     def __init__(self, write=False):
         self._write = write
@@ -175,6 +185,7 @@ class OpenFileLocked:
             self.data = pickle.load(self._file)
         except EOFError:
             self.data = {
+                'crontab': {},
                 'jobs': [],
                 'schedules': [],
                 'workers': deque(),
