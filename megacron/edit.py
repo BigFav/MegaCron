@@ -12,6 +12,9 @@ from croniter import croniter
 from megacron import api
 
 
+_input_ver_map = {True: raw_input, False: input}
+
+
 def _print_usage(self, file=None):
     if file is None:
         file = sys.stdout
@@ -40,8 +43,8 @@ def parse_args():
                              "user's crontab, if no user is specified.")
     parser.add_argument('-i', action="store_true", dest="rm_prompt",
                         help="The -i option modifies the -r option to prompt "
-                             "the user for a 'y/Y' response before actually "
-                             "removing the crontab.")
+                             "the user for a 'Y/y' response before removing "
+                             "the crontab.")
 
     # Cannot have multiple commands at once
     commands = parser.add_mutually_exclusive_group()
@@ -73,14 +76,15 @@ def get_crontab(opts, valid_crontab, tb_file):
         # Perform list operation
         if opts.lst:
             lst = old_cron if old_cron else "No crontab for %s." % opts.usr[1]
-            print lst
+            print(lst)
             sys.exit(0)
 
         # Perform an edit in text editor
         if (opts.file is False) and (valid_crontab is None):
             # Write remote crontab to tempfile if it hasn't been written
             with tempfile.NamedTemporaryFile('w', delete=False) as temp:
-                temp.write(old_cron)
+                if old_cron:
+                    temp.write(old_cron)
                 tb_file = temp.name
 
         # Open the crontab in editor
@@ -96,7 +100,7 @@ def get_crontab(opts, valid_crontab, tb_file):
             except OSError:
                 if opts.file is False:
                     os.unlink(tb_file)
-                sys.exit("No text editor available. Please set your VISUAL"
+                sys.exit("No text editor available. Please set your VISUAL "
                          "or EDITOR environment variable.")
 
     # Overwriting current crontab with local file
@@ -126,14 +130,15 @@ def process_edits(uid, tb_file, using_local_file):
                     # Otherwise prompt user to edit crontab
                     while True:
                         # Different syntax in Python 3 'input()'
-                        cont = raw_input("The crontab you entered has invalid "
-                                         "entries, would you like to edit it "
-                                         "again? (y/n) ")
-                        if (cont == 'n') or (cont == 'N'):
+                        e_str = ("The crontab you entered has invalid "
+                                 "entries, would you like to edit it "
+                                 "again? (y/n) ")
+                        cnt = _input_ver_map[sys.version_info < (3, 0)](e_str)
+                        if (cnt == 'n') or (cnt == 'N'):
                             if using_local_file is False:
                                 os.unlink(tb_file)
                             sys.exit(1)
-                        elif (cont == 'y') or (cont == 'Y'):
+                        elif (cnt == 'y') or (cnt == 'Y'):
                             return False
                 jobs.append(api.Job(interval, cmd, uid, datetime.now()))
 
@@ -151,7 +156,7 @@ def main():
     usr_euid = os.geteuid()
     opts = parse_args()
 
-    # Convert given username into uid
+    # Convert given username into (uid, username)
     if opts.usr:
         opts.usr = (getpwnam(opts.usr).pw_uid, opts.usr)
 
@@ -165,6 +170,13 @@ def main():
 
     # Perform rm operation
     if opts.rm:
+        if opts.rm_prompt:
+            e_str = ("You are about to delete %s's crontab, continue? "
+                     "(Y/y) " % opts.usr[1])
+            rm = _input_ver_map[sys.version_info < (3, 0)](e_str)
+            if (rm != 'Y') and (rm != 'y'):
+                sys.exit(0)
+
         api.set_jobs([], opts.usr[0])
         api.set_crontab('', opts.usr[0])
         sys.exit(0)
