@@ -167,7 +167,7 @@ def main():
                      "crontab." % opts.usr[1])
     # If no user is specified, set to current user
     else:
-        opts.usr = (usr_euid, getpwuid(usr_euid)[0])
+        opts.usr = (usr_euid, getpwuid(usr_euid).pw_name)
 
     # Perform rm operation
     if opts.rm:
