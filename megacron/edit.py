@@ -12,12 +12,13 @@ from croniter import croniter
 from megacron import api
 
 
-_input_ver_map = {True: raw_input, False: input}
+_input = raw_input if sys.version_info < (3, 0) else input
 
 
 def _print_usage(self, file=None):
     if file is None:
         file = sys.stdout
+    # Only inserted line to adjust printed usage to fit implicit rule
     usage_str = re.sub("\[-e \| -r \| -l \| file\]",
                        "{-e | -r | -l | file}",
                        self.format_usage())
@@ -28,6 +29,7 @@ argparse.ArgumentParser.print_usage = _print_usage
 def _print_help(self, file=None):
     if file is None:
         file = sys.stdout
+    # Only inserted line to adjust printed usage to fit implicit rule
     help_str = re.sub("\[-e \| -r \| -l \| file\]",
                       "{-e | -r | -l | file}",
                       self.format_help())
@@ -62,7 +64,7 @@ def parse_args():
                           help="File to overwrite current crontab.")
 
     opts = parser.parse_args()
-    # Ensure at least one command was selected
+    # Ensure at least one command was selected, extra implicit rule
     if not (opts.file or opts.edit or opts.lst or opts.rm):
         parser.error("No command requested, add -e, -r, -l, or a file name.")
 
@@ -121,19 +123,18 @@ def process_edits(uid, tb_file, using_local_file):
             if line and (line[0] != '#'):
                 # Isolate interval and command from end-of-line comment
                 tmp = line.partition("  #")[0].split(' ')
-                interval = string.joinfields(tmp[:5], ' ')
-                cmd = string.joinfields(tmp[5:], ' ')
+                interval = ' '.join(tmp[:5])
+                cmd = ' '.join(tmp[5:])
                 try:
                     # Ensure the crontab line is valid
                     croniter(interval)
                 except (KeyError, ValueError):
                     # Otherwise prompt user to edit crontab
                     while True:
-                        # Different syntax in Python 3 'input()'
                         e_str = ("The crontab you entered has invalid "
                                  "entries, would you like to edit it "
                                  "again? (y/n) ")
-                        cnt = _input_ver_map[sys.version_info < (3, 0)](e_str)
+                        cnt = _input(e_str)
                         if (cnt == 'n') or (cnt == 'N'):
                             if using_local_file is False:
                                 os.unlink(tb_file)
@@ -145,7 +146,7 @@ def process_edits(uid, tb_file, using_local_file):
     if using_local_file is False:
         os.unlink(tb_file)
 
-    api.set_crontab(string.joinfields(crontab, '\n'), uid)
+    api.set_crontab('\n'.join(crontab), uid)
     api.set_jobs(jobs, uid)
     return True
 
@@ -173,7 +174,7 @@ def main():
         if opts.rm_prompt:
             e_str = ("You are about to delete %s's crontab, continue? "
                      "(Y/y) " % opts.usr[1])
-            rm = _input_ver_map[sys.version_info < (3, 0)](e_str)
+            rm = _input(e_str)
             if (rm != 'Y') and (rm != 'y'):
                 sys.exit(0)
 
@@ -184,3 +185,4 @@ def main():
     while not valid_crontab:
         tb_file = get_crontab(opts, valid_crontab, tb_file)
         valid_crontab = process_edits(opts.usr[0], tb_file, opts.file)
+main()
