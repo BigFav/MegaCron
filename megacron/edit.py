@@ -185,4 +185,3 @@ def main():
     while not valid_crontab:
         tb_file = get_crontab(opts, valid_crontab, tb_file)
         valid_crontab = process_edits(opts.usr[0], tb_file, opts.file)
-main()
