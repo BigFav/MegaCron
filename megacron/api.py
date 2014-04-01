@@ -185,7 +185,7 @@ class OpenFileLocked:
             self.data = pickle.load(self._file)
         except EOFError:
             self.data = {
-                'crontab': defaultdict(lambda: None),
+                'crontab': defaultdict(bool),
                 'jobs': [],
                 'schedules': [],
                 'workers': deque(),
