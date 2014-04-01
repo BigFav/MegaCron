@@ -3,7 +3,7 @@ import os
 import fcntl
 import errno
 from datetime import datetime
-from collections import deque
+from collections import defaultdict, deque
 
 from megacron import config
 
@@ -151,9 +151,7 @@ def destroy_worker(worker):
 
 def get_crontab(uid):
     with OpenFileLocked(write=False) as file:
-        if uid in file['crontab']:
-            return file['crontab'][uid]
-    return None
+        return file['crontab'][uid]
 
 
 def set_crontab(crontab, uid):
@@ -187,7 +185,7 @@ class OpenFileLocked:
             self.data = pickle.load(self._file)
         except EOFError:
             self.data = {
-                'crontab': {},
+                'crontab': defaultdict(lambda: None),
                 'jobs': [],
                 'schedules': [],
                 'workers': deque(),
