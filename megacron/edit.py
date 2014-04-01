@@ -1,12 +1,12 @@
 import argparse
 import os
+import pwd
 import re
 import sys
 import string
 import subprocess
 import tempfile
 from datetime import datetime
-from pwd import getpwnam, getpwuid
 
 from croniter import croniter
 from megacron import api
@@ -159,7 +159,10 @@ def main():
 
     # Convert given username into (uid, username)
     if opts.usr:
-        opts.usr = (getpwnam(opts.usr).pw_uid, opts.usr)
+        try:
+            opts.usr = (pwd.getpwnam(opts.usr).pw_uid, opts.usr)
+        except KeyError:
+            sys.exit("User '%s' does not exist." % opts.usr)
 
         # Verify permissions for selected crontab
         if (usr_euid != 0) and (opts.usr[0] != usr_euid):
@@ -167,7 +170,7 @@ def main():
                      "crontab." % opts.usr[1])
     # If no user is specified, set to current user
     else:
-        opts.usr = (usr_euid, getpwuid(usr_euid).pw_name)
+        opts.usr = (usr_euid, pwd.getpwuid(usr_euid).pw_name)
 
     # Perform rm operation
     if opts.rm:
