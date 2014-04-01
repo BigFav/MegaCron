@@ -151,7 +151,9 @@ def destroy_worker(worker):
 
 def get_crontab(uid):
     with OpenFileLocked(write=False) as file:
-        return file['crontab'].get(uid, '')
+        if uid in file['crontab']:
+            return file['crontab'][uid]
+    return None
 
 
 def set_crontab(crontab, uid):
