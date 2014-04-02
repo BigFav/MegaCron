@@ -121,10 +121,9 @@ def process_edits(uid, tb_file, using_local_file):
             crontab.append(line)
             # Ignore newlines and full line comments
             if line and (line[0] != '#'):
-                # Isolate interval and command from end-of-line comment
-                tmp = line.partition("  #")[0].split(' ')
-                interval = ' '.join(tmp[:5])
-                cmd = ' '.join(tmp[5:])
+                line = line.split()
+                interval = ' '.join(line[:5])
+                cmd = ' '.join(line[5:])
                 try:
                     # Ensure the crontab line is valid
                     croniter(interval)

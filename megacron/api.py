@@ -11,10 +11,10 @@ FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 
 
 class Job:
-    def __init__(self, interval, command, uid, last_time_run, _id=None):
+    def __init__(self, interval, command, user_id, last_time_run, _id=None):
         self.interval = interval
         self.command = command
-        self.uid = uid
+        self.user_id = user_id
         self.last_time_run = last_time_run
         self._id = _id
 
@@ -47,12 +47,12 @@ def get_jobs():
         return file['jobs']
 
 
-def get_jobs_for_user(uid):
+def get_jobs_for_user(user_id):
     with OpenFileLocked() as file:
-        return [j for j in file['jobs'] if j.uid == uid]
+        return [j for j in file['jobs'] if j.user_id == user_id]
 
 
-def set_jobs(jobs, uid):
+def set_jobs(jobs, user_id):
     with OpenFileLocked(write=True) as file:
         # Give them an id if they don't already have one
         for job in jobs:
@@ -60,7 +60,7 @@ def set_jobs(jobs, uid):
                 job._id = file['next_job_id']
                 file['next_job_id'] += 1
 
-        file['jobs'] = [j for j in file['jobs'] if j.uid != uid]
+        file['jobs'] = [j for j in file['jobs'] if j.user_id != user_id]
         file['jobs'].extend(jobs)
 
 
@@ -149,14 +149,14 @@ def destroy_worker(worker):
         file['workers'].remove(worker)
 
 
-def get_crontab(uid):
+def get_crontab(user_id):
     with OpenFileLocked(write=False) as file:
-        return file['crontab'][uid]
+        return file['crontab'][user_id]
 
 
-def set_crontab(crontab, uid):
+def set_crontab(crontab, user_id):
     with OpenFileLocked(write=True) as file:
-        file['crontab'][uid] = crontab
+        file['crontab'][user_id] = crontab
 
 
 class OpenFileLocked:
