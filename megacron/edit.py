@@ -3,7 +3,6 @@ import os
 import pwd
 import re
 import sys
-import string
 import subprocess
 import tempfile
 from datetime import datetime
@@ -40,7 +39,7 @@ argparse.ArgumentParser.print_help = _print_help
 def parse_args():
     parser = argparse.ArgumentParser(description="Gets options for crontab "
                                                  "editor.")
-    parser.add_argument('-u', action="store", dest="usr", nargs='?',
+    parser.add_argument('-u', action="store", dest="usr",
                         help="User of whose crontab to use. Will use current "
                              "user's crontab, if no user is specified.")
     parser.add_argument('-i', action="store_true", dest="rm_prompt",
@@ -181,7 +180,7 @@ def main():
                 sys.exit(0)
 
         api.set_jobs([], opts.usr[0])
-        api.set_crontab('', opts.usr[0])
+        api.set_crontab(None, opts.usr[0])
         sys.exit(0)
 
     while not valid_crontab:
