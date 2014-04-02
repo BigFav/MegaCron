@@ -44,7 +44,7 @@ def parse_args():
                              "user's crontab, if no user is specified.")
     parser.add_argument('-i', action="store_true", dest="rm_prompt",
                         help="The -i option modifies the -r option to prompt "
-                             "the user for a 'Y/y' response before removing "
+                             "the user for a 'y/n' response before removing "
                              "the crontab.")
 
     # Cannot have multiple commands at once
