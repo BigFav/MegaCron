@@ -128,10 +128,9 @@ def process_edits(uid, tb_file, using_local_file):
                     croniter(interval)
                 except (KeyError, ValueError):
                     # Otherwise prompt user to edit crontab
+                    e_str = ("The crontab you entered has invalid entries, "
+                             "would you like to edit it again? (y/n) ")
                     while True:
-                        e_str = ("The crontab you entered has invalid "
-                                 "entries, would you like to edit it "
-                                 "again? (y/n) ")
                         cnt = _input(e_str)
                         if (cnt == 'n') or (cnt == 'N'):
                             if using_local_file is False:
@@ -139,6 +138,8 @@ def process_edits(uid, tb_file, using_local_file):
                             sys.exit(1)
                         elif (cnt == 'y') or (cnt == 'Y'):
                             return False
+                        e_str = "Please enter y or n: "
+
                 jobs.append(api.Job(interval, cmd, uid, datetime.now()))
 
     if using_local_file is False:
@@ -173,11 +174,14 @@ def main():
     # Perform rm operation
     if opts.rm:
         if opts.rm_prompt:
+            rm = None
             e_str = ("You are about to delete %s's crontab, continue? "
-                     "(Y/y) " % opts.usr[1])
-            rm = _input(e_str)
-            if (rm != 'Y') and (rm != 'y'):
-                sys.exit(0)
+                     "(y/n) " % opts.usr[1])
+            while (rm != 'Y') and (rm != 'y'):
+                rm = _input(e_str)
+                if (rm == 'N') or (rm == 'n'):
+                    sys.exit(0)
+                e_str = "Please enter y or n: "
 
         api.set_jobs([], opts.usr[0])
         api.set_crontab(None, opts.usr[0])
