@@ -1,41 +1,80 @@
+import os
 import sys
 import string
 import subprocess
-import os
 import tempfile
 from datetime import datetime
 
+from croniter import croniter
 from megacron import api
+
+
+def get_crontab(uid, valid_crontab, remote_file, tb_file):
+    if remote_file or (valid_crontab is False):
+        jobs_old = api.get_jobs_for_user(uid)
+        if remote_file and (valid_crontab is None):
+            with tempfile.NamedTemporaryFile('w', delete=False) as temp:
+                for job in jobs_old:
+                    temp.write("%s %s\n" % (job.interval, job.command))
+
+                tb_file = temp.name
+
+        visual = os.getenv('VISUAL')
+        editor = os.getenv('EDITOR')
+        if visual:
+            os.system("%s %s" % (visual, tb_file))
+        elif editor:
+            os.system("%s %s" % (editor, tb_file))
+        else:
+            try:
+                subprocess.check_call(["vi", str(tb_file)])
+            except OSError:
+                if remote_file:
+                    os.unlink(tb_file)
+                sys.exit("No text editor available. Please set your VISUAL"
+                         "or EDITOR environment variable.")
+
+    elif sys.argv[1] == '-u':
+        tb_file = sys.argv[2]
+
+    return tb_file
+
+
+def process_edits(uid, tb_file, using_remote_file):
+    jobs_new = []
+    with open(tb_file, 'r') as tab:
+        for line in tab:
+            tmp = line.strip().split(' ')
+            interval = string.joinfields(tmp[:5], ' ')
+            cmd = string.joinfields(tmp[5:], ' ')
+            try:
+                croniter(interval)
+            except (KeyError, ValueError):
+                while True:
+                    # Different syntax in Python 3 'input()'
+                    cont = raw_input("The crontab you entered has invalid "
+                                     "entries, would you like to edit it "
+                                     "again? (y/n) ")
+                    if (cont == 'n') or (cont == 'N'):
+                        if using_remote_file:
+                            os.unlink(tb_file)
+                        sys.exit(1)
+                    elif (cont == 'y') or (cont == 'Y'):
+                        return False
+            jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
+
+    if using_remote_file:
+        os.unlink(tb_file)
+
+    api.set_jobs(jobs_new, uid)
+    return True
 
 
 def main():
     uid = os.getuid()
-
-    if len(sys.argv) < 3:
-        jobs_old = api.get_jobs_for_user(uid)
-        with tempfile.NamedTemporaryFile('w', delete=False) as temp:
-            for job in jobs_old:
-                temp.write("%s %s\n" % (job.interval, job.command))
-
-            tb_file = temp.name
-
-        editor = os.getenv('EDITOR')
-        if editor is not None:
-            os.system("%s %s" % (editor, tb_file))
-        else:
-            subprocess.call("vim %s" % tb_file, shell=True)
-    elif sys.argv[1] == '-u':
-        tb_file = sys.argv[2]
-
-    jobs_new = []
-    with open(tb_file, 'r') as tab:
-        for job in tab:
-            tmp = job.strip().split(' ')
-            interval = string.joinfields(tmp[:5], ' ')
-            cmd = string.joinfields(tmp[5:], ' ')
-            jobs_new.append(api.Job(interval, cmd, uid, datetime.now()))
-
-    if len(sys.argv) < 3:
-        os.unlink(tb_file)
-
-    api.set_jobs(jobs_new, uid)
+    tb_file = None
+    valid_crontab = None
+    using_remote_file = len(sys.argv) < 3
+    while not valid_crontab:
+        tb_file = get_crontab(uid, valid_crontab, using_remote_file, tb_file)
+        valid_crontab = process_edits(uid, tb_file, using_remote_file)

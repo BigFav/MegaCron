@@ -379,101 +379,114 @@ class TestApiFunctions(unittest.TestCase):
 #         # Verify that the correct remaining worker is still in the list
 #         check_worker_fields(self, workers_list, test_workers)
 
-#### TEST UPDATE_HEARTBEAT(Worker) ####
-    def test_update_heartbeat_empty_workers(self):
+# #### TEST UPDATE_HEARTBEAT(Worker) ####
+#     def test_update_heartbeat_empty_workers(self):
+#         test_workers = []
+#         # Verify that we do not update nonexistent workers
+#         with self.assertRaises(ValueError):
+#             api.update_heartbeat(test_workers)
+
+#     def test_update_heartbeat_deleted_worker(self):
+#         test_workers = []
+#         # Create a temporary worker in the test workers list
+#         to_be_deleted = test_workers.append(api.create_worker())
+#         # Destroy the only worker in the list
+#         api.destroy_worker(api.get_next_worker())
+#         # Verify that we do not update nonexistent workers
+#         with self.assertRaises(ValueError):
+#             api.update_heartbeat(to_be_deleted)
+
+#     def test_update_heartbeat_one_worker(self):
+#         test_workers, workers_list = [], []
+#         # Create one worker and it to a list for bookkeeping
+#         test_workers.append(api.create_worker())
+#         # Get the original heartbeat of the only worker
+#         previous_heartbeats = []
+#         previous_heartbeats.append(test_workers[0].heartbeat)
+#         # Old heartbeat is before checkpoint, new heartbeat should be after
+#         checkpoint1 = datetime.now()
+#         api.update_heartbeat(test_workers[0])
+#         workers_list = api.get_workers()
+#         checkpoint2 = datetime.now()
+#         # Verify that the heartbeat has been updated correctly and previous
+#         # heartbeat was not an unexpected value
+#         check_heartbeat_value(self, workers_list[0], previous_heartbeats,
+#         checkpoint1, checkpoint2, 0)
+
+#     def test_update_heartbeat_one_worker_many_requests(self):
+#         num_of_requests = 10
+#         test_workers, workers_list = [], []
+#         # Create many workers and them to a list for bookkeeping
+#         test_workers.append(api.create_worker())
+#         # Get the original heartbeat of the only worker
+#         previous_heartbeats = []
+#         previous_heartbeats.append(test_workers[0].heartbeat)
+#         checkpoint1 = datetime.now()
+#         for request in range(num_of_requests):
+#             api.update_heartbeat(test_workers[0])
+#             workers_list = api.get_workers()
+#             checkpoint2 = datetime.now()
+#             # Verify that the heartbeat has been updated correctly and previous
+#             # heartbeat was not an unexpected value
+#             check_heartbeat_value(self, workers_list[0], previous_heartbeats,
+#             checkpoint1, checkpoint2, 0)
+
+#     def test_update_heartbeat_many_workers_many_requests(self):
+#         num_of_workers = 10
+#         test_workers, workers_list= [], []
+#         previous_heartbeats = []
+#         # Create many workers and them to a list for bookkeeping
+#         for worker in range(num_of_workers):
+#             test_workers.append(api.create_worker())
+#         # Get the original heartbeat of each worker
+#         for worker in test_workers:
+#             previous_heartbeats.append(worker.heartbeat)
+#         checkpoint1 = datetime.now()
+#         for worker in test_workers:
+#             api.update_heartbeat(worker)
+#         workers_list = api.get_workers()
+#         checkpoint2 = datetime.now()
+#         # Verify that the heartbeats have been updated correctly and previous
+#         # heartbeats were not an unexpected value
+#         current = 0
+#         for worker in workers_list:
+#             check_heartbeat_value(self, worker, previous_heartbeats,
+#             checkpoint1, checkpoint2, current)
+#             current += 1
+
+#     def test_update_heartbeat_many_workers_random_worker(self):
+#         # Number of workers and floor(requests) + ceiling(requests) are equal 
+#         num_of_workers = 10
+#         test_workers, workers_list= [], []
+#         previous_heartbeats = []
+#         # Create many workers and them to a list for bookkeeping
+#         for worker in range(num_of_workers):
+#             test_workers.append(api.create_worker())
+#         # Get the original heartbeat of each worker
+#         checkpoint1 = datetime.now()
+#         for worker in test_workers:
+#             previous_heartbeats.append(worker.heartbeat)
+#             random_worker = random.randrange(num_of_workers)
+#         api.update_heartbeat(test_workers[random_worker])
+#         workers_list = api.get_workers()
+#         checkpoint2 = datetime.now()
+#         # Verify that the random worker's heartbeat has been updated correctly
+#         # and its previous heartbeat was not an unexpected value
+#         check_heartbeat_value(self, workers_list[random_worker], 
+#         previous_heartbeats, checkpoint1, checkpoint2, random_worker)
+
+#### TEST ADD_SCHEDULES([Schedule]) ####
+    def test_add_schedules_one_schedule(self):
+        num_of_jobs = 1
+        num_of_workers = num_of_jobs
+        # Create a crontab with one job
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
         test_workers = []
-        # Verify that we do not update nonexistent workers
-        with self.assertRaises(ValueError):
-            api.update_heartbeat(test_workers)
-
-    def test_update_heartbeat_deleted_worker(self):
-        test_workers = []
-        # Create a temporary worker in the test workers list
-        to_be_deleted = test_workers.append(api.create_worker())
-        # Destroy the only worker in the list
-        api.destroy_worker(api.get_next_worker())
-        # Verify that we do not update nonexistent workers
-        with self.assertRaises(ValueError):
-            api.update_heartbeat(to_be_deleted)
-
-    def test_update_heartbeat_one_worker(self):
-        test_workers, workers_list = [], []
-        # Create one worker and it to a list for bookkeeping
         test_workers.append(api.create_worker())
-        # Get the original heartbeat of the only worker
-        previous_heartbeats = []
-        previous_heartbeats.append(test_workers[0].heartbeat)
-        # Old heartbeat is before checkpoint, new heartbeat should be after
-        checkpoint1 = datetime.now()
-        api.update_heartbeat(test_workers[0])
-        workers_list = api.get_workers()
-        checkpoint2 = datetime.now()
-        # Verify that the heartbeat has been updated correctly and previous
-        # heartbeat was not an unexpected value
-        check_heartbeat_value(self, workers_list[0], previous_heartbeats,
-        checkpoint1, checkpoint2, 0)
-
-    def test_update_heartbeat_one_worker_many_requests(self):
-        num_of_requests = 10
-        test_workers, workers_list = [], []
-        # Create many workers and them to a list for bookkeeping
-        test_workers.append(api.create_worker())
-        # Get the original heartbeat of the only worker
-        previous_heartbeats = []
-        previous_heartbeats.append(test_workers[0].heartbeat)
-        checkpoint1 = datetime.now()
-        for request in range(num_of_requests):
-            api.update_heartbeat(test_workers[0])
-            workers_list = api.get_workers()
-            checkpoint2 = datetime.now()
-            # Verify that the heartbeat has been updated correctly and previous
-            # heartbeat was not an unexpected value
-            check_heartbeat_value(self, workers_list[0], previous_heartbeats,
-            checkpoint1, checkpoint2, 0)
-
-    def test_update_heartbeat_many_workers_many_requests(self):
-        num_of_workers = 10
-        test_workers, workers_list= [], []
-        previous_heartbeats = []
-        # Create many workers and them to a list for bookkeeping
-        for worker in range(num_of_workers):
-            test_workers.append(api.create_worker())
-        # Get the original heartbeat of each worker
-        for worker in test_workers:
-            previous_heartbeats.append(worker.heartbeat)
-        checkpoint1 = datetime.now()
-        for worker in test_workers:
-            api.update_heartbeat(worker)
-        workers_list = api.get_workers()
-        checkpoint2 = datetime.now()
-        # Verify that the heartbeats have been updated correctly and previous
-        # heartbeats were not an unexpected value
-        current = 0
-        for worker in workers_list:
-            check_heartbeat_value(self, worker, previous_heartbeats,
-            checkpoint1, checkpoint2, current)
-            current += 1
-
-    def test_update_heartbeat_many_workers_random_worker(self):
-        # Number of workers and floor(requests) + ceiling(requests) are equal 
-        num_of_workers = 10
-        test_workers, workers_list= [], []
-        previous_heartbeats = []
-        # Create many workers and them to a list for bookkeeping
-        for worker in range(num_of_workers):
-            test_workers.append(api.create_worker())
-        # Get the original heartbeat of each worker
-        checkpoint1 = datetime.now()
-        for worker in test_workers:
-            previous_heartbeats.append(worker.heartbeat)
-            random_worker = random.randrange(num_of_workers)
-        api.update_heartbeat(test_workers[random_worker])
-        workers_list = api.get_workers()
-        checkpoint2 = datetime.now()
-        # Verify that the random worker's heartbeat has been updated correctly
-        # and its previous heartbeat was not an unexpected value
-        check_heartbeat_value(self, workers_list[random_worker], 
-        previous_heartbeats, checkpoint1, checkpoint2, random_worker)
+        schedule = api.Schedule(datetime.now(), test_jobs.pop(), 
+        test_workers.pop())
 
 if __name__ == '__main__':
     unittest.main()
