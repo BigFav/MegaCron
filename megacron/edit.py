@@ -168,7 +168,7 @@ def main():
         if (usr_euid != 0) and (opts.usr[0] != usr_euid):
             sys.exit("Access denied. You do not have permission to edit %s's "
                      "crontab." % opts.usr[1])
-    # If no user is specified, set to current user
+    # If no user is specified, set to current user (euid or uid?)
     else:
         opts.usr = (usr_euid, pwd.getpwuid(usr_euid).pw_name)
 
