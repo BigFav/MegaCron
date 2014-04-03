@@ -8,9 +8,12 @@ from megacron import api
 SCHEDULES_UPDATE_INTERVAL = timedelta(seconds=10)
 HEARTBEAT_UPDATE_INTERVAL = timedelta(seconds=10)
 
-worker = api.create_worker()
 _schedules = []
 _run_schedules_event = None
+
+def init_worker():
+    global worker
+    worker = api.create_worker()
 
 
 def cleanup():
