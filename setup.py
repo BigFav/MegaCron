@@ -17,14 +17,18 @@ setup(
             'megacron-status = megacron.status:main'
         ]
     },
-    install_requires=['croniter'],
+    install_requires=[
+        'croniter',
+        'python-daemon',
+        'lockfile'
+    ],
     package_data={
         'megacron': ['conf/megacron.conf']
     },
     data_files=[
         ('/etc', ['megacron/conf/megacron.conf'])
     ],
-    setup_requires = [ "setuptools_git >= 0.3"],
+    setup_requires=["setuptools_git >= 0.3"],
     url='https://www.mediawiki.org/wiki/Facebook_Open_Academy/Cron',
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
     long_description=open('README.rst').read()

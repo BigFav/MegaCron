@@ -29,7 +29,7 @@ Set the location of the database file to a shared filesystem in
 
 ::
 
-    sudo megacrond&
+    sudo megacrond
     sudo megacrontab
 
 Commands
