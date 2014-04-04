@@ -7,7 +7,8 @@ import math
 from datetime import datetime
 
 from test_support_functions import create_test_tab, cleanup, uids, \
-     check_job_fields, check_worker_fields, check_heartbeat_value
+     check_job_fields, check_worker_fields, check_schedule_fields, \
+     check_heartbeat_value
 from megacron import api
 
 api.FILE_NAME = './testdb.p'
@@ -284,7 +285,7 @@ class TestApiFunctions(unittest.TestCase):
     	test_workers, workers_list = [], []
     	# Create one worker and it to a list for bookkeeping
     	test_workers.append(api.create_worker())
-        # Verify that the test workers list contains exactly one worker
+        # Verify that the test workers contains exactly one worker
         self.assertEqual(len(test_workers), num_of_workers)
     	for request in range(num_of_requests):
     		# Get workers and add them to a list for
@@ -303,11 +304,11 @@ class TestApiFunctions(unittest.TestCase):
         for worker in range(num_of_workers):
             # Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
-        # Verify that the test workers list contains
+        # Verify that the test workers contains
         # the correct number of workers
         self.assertEqual(len(test_workers), num_of_workers)
         for request in range(num_of_requests):
-            # Get more workers than available in the test workers list
+            # Get more workers than available in the test workers
             # (popped workers are pushed to the end of the queue)
             # and add them to a list for comparison
             workers_list.append(api.get_next_worker())
@@ -387,7 +388,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_update_heartbeat_deleted_worker(self):
         test_workers = []
-        # Create a temporary worker in the test workers list
+        # Create a temporary worker in the test workers
         to_be_deleted = test_workers.append(api.create_worker())
         # Destroy the only worker in the list
         api.destroy_worker(api.get_next_worker())
@@ -534,15 +535,101 @@ class TestApiFunctions(unittest.TestCase):
         # Verify that the schedules list contains exactly one schedule
         self.assertEqual(len(schedules_list), num_of_schedules)
 
-# #### TEST GET_SCHEDULES(Worker) ####
-    # def test_get_schedules_one_worker_one_schedule(self):
+#### TEST GET_SCHEDULES(Worker) ####
+    def test_get_schedules_one_worker_one_schedule(self):
+        num_of_jobs = 1
+        num_of_schedules = num_of_jobs
+        # Create a crontab with one job
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create one worker and add them to a list for bookkeeping
+        test_workers.append(api.create_worker())
+        # Create a schedule for the only job
+        test_schedules = []
+        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
+        test_workers[0]))
+        api.add_schedules(test_schedules)
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the information we get matches what was set
+        check_schedule_fields(self, schedules_list, test_schedules)
 
-    # def test_get_schedules_one_worker_many_schedules(self):
-    
-    # def test_get_schedules_many_workers_one_schedule(self):
-    
-    # def test_get_schedules_many_workers_many_schedules(self):
 
+    def test_get_schedules_one_worker_many_schedules(self):
+        num_of_jobs = 10
+        num_of_schedules = num_of_jobs
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create one worker and add them to a list for bookkeeping
+        test_workers.append(api.create_worker())
+        # Create a schedule for the only job
+        test_schedules = []
+        for job in range(num_of_jobs):
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[job], 
+            test_workers[0]))
+        api.add_schedules(test_schedules)
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the information we get matches what was set
+        check_schedule_fields(self, schedules_list, test_schedules)
+
+    def test_get_schedules_many_workers_one_schedule(self):
+        num_of_jobs = 1
+        num_of_schedules = num_of_jobs
+        num_of_workers = 10
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create many workers and add them to a list for bookkeeping
+        for worker in range(num_of_workers):
+            test_workers.append(api.create_worker())
+        # Create a schedule belonging to each worker containing the only job
+        test_schedules = []
+        for worker in test_workers:
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
+            worker))
+        api.add_schedules(test_schedules)
+        # Aggregate each worker's schedules into a single list for comparison
+        # with test schedules
+        schedules_for_workers = []
+        for worker in test_workers:
+            schedules_list = api.get_schedules(worker)
+            schedules_for_workers.extend(schedules_list)
+        # Verify that the information we get matches what was set
+        check_schedule_fields(self, schedules_for_workers, 
+        test_schedules)
+
+    def test_get_schedules_many_workers_many_schedules(self):
+        num_of_jobs = 10
+        num_of_schedules = num_of_jobs
+        num_of_workers = num_of_schedules
+        num_of_workers = 10
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create many workers and add them to a list for bookkeeping
+        for worker in range(num_of_workers):
+            test_workers.append(api.create_worker())
+        # Create a schedule belonging to each worker representing the only job
+        test_schedules = []
+        for worker in test_workers:
+        	for job in jobs_list:
+                    test_schedules.append(api.Schedule(datetime.now(), 
+                    job, worker))
+        api.add_schedules(test_schedules)
+        # Aggregate each worker's schedules into a single list for comparison
+        # with test schedules
+        schedules_for_workers = []
+        for worker in test_workers:
+            schedules_list = api.get_schedules(worker)
+            schedules_for_workers.extend(schedules_list)
+        # Verify that the information we get matches what was set
+        check_schedule_fields(self, schedules_for_workers, 
+        test_schedules)
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,11 +38,13 @@ def check_worker_fields(self, workers_list, test_workers):
         self.assertEqual(worker._id, workers_list[current]._id)
         current += 1
 
-def check_worker_fields(self, workers_list, test_workers):
+def check_schedule_fields(self, schedules_list, test_schedules):
     current = 0
-    for worker in test_workers:
-        self.assertEqual(worker.heartbeat, workers_list[current].heartbeat)
-        self.assertEqual(worker._id, workers_list[current]._id)
+    for schedule in test_schedules:
+        self.assertEqual(schedule.time_to_run, schedules_list[current].time_to_run)
+        self.assertEqual(schedule.job, schedules_list[current].job)
+        self.assertEqual(schedule.worker, schedules_list[current].worker)
+        self.assertEqual(schedule._id, schedules_list[current]._id)
         current += 1
 
 def check_heartbeat_value(self, worker, previous_heartbeats, checkpoint1,
