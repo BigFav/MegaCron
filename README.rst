@@ -51,6 +51,7 @@ Clone this repo and run:
 ::
 
     sudo ./setup.py develop
+    sudo cp megacron/conf/megacron.conf /etc/
 
 To uninstall:
 
