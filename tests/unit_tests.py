@@ -59,7 +59,7 @@ class TestApiFunctions(unittest.TestCase):
         api.set_jobs(test_jobs, uids['uid1'])
         jobs_list_uid1 = api.get_jobs_for_user(uids['uid1'])
         # Verify that the jobs list for uid1 is empty
-        self.assertEqual(len(jobs_list_uid1), num_of_jobs)
+        self.assertFalse(len(jobs_list_uid1))
 
     def test_get_jobs_for_user_many_jobs(self):
         num_of_jobs = 10
@@ -237,7 +237,7 @@ class TestApiFunctions(unittest.TestCase):
     	num_of_workers = 0
     	workers_list = api.get_workers()
     	# Verify that workers list is empty
-    	self.assertEqual(len(workers_list), num_of_workers)
+    	self.assertFalse(len(workers_list))
 
     def test_get_workers_one_worker(self):
     	num_of_workers = 1
@@ -270,9 +270,10 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_get_next_worker_one_worker(self):
     	num_of_workers = 1
-    	test_workers, workers_list = [], []
+    	test_workers = []
     	# Create one worker and add it to a list for bookkeeping
     	test_workers.append(api.create_worker())
+        workers_list = []
     	workers_list.append(api.get_next_worker())
     	# Verify that the workers list contains exactly one worker
     	self.assertEqual(len(workers_list), num_of_workers)
@@ -282,14 +283,15 @@ class TestApiFunctions(unittest.TestCase):
     def test_get_next_worker_one_worker_many_requests(self):
     	num_of_workers = 1
     	num_of_requests = 10
-    	test_workers, workers_list = [], []
+    	test_workers = []
     	# Create one worker and it to a list for bookkeeping
     	test_workers.append(api.create_worker())
         # Verify that the test workers contains exactly one worker
         self.assertEqual(len(test_workers), num_of_workers)
+        workers_list = []
     	for request in range(num_of_requests):
     		# Get workers and add them to a list for
-            # comparison with list of test workers
+          # comparison with list of test workers
             workers_list.append(api.get_next_worker())
 	    # Verify that the workers list contains
 	    # as many workers as there were requests
@@ -300,13 +302,14 @@ class TestApiFunctions(unittest.TestCase):
     def test_get_next_worker_many_workers_more_requests(self):
         num_of_workers = 10
         num_of_requests = 12
-        test_workers, workers_list = [], []
+        test_workers = []
         for worker in range(num_of_workers):
             # Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
         # Verify that the test workers contains
         # the correct number of workers
         self.assertEqual(len(test_workers), num_of_workers)
+        workers_list = []
         for request in range(num_of_requests):
             # Get more workers than available in the test workers
             # (popped workers are pushed to the end of the queue)
@@ -341,17 +344,18 @@ class TestApiFunctions(unittest.TestCase):
         num_of_workers = 9
         # Automatic flooring care of Python
         num_of_requests = num_of_workers/2
-        test_workers, workers_list = [], []
+        test_workers = []
         for worker in range(num_of_workers):
             # Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
         # Kill the floor of half of the workers in the list
         for request in range(num_of_requests):
             api.destroy_worker(test_workers.pop())
+        workers_list = []
         workers_list = api.get_workers()
         # Verify that the correct workers are still in the list
         check_worker_fields(self, workers_list, test_workers)
-        # Kill the floor of half of the workers in the list
+        # Remove the rest of the test workers
         while test_workers:
             api.destroy_worker(test_workers.pop())
         # Try to get a worker from an empty pool
@@ -365,7 +369,7 @@ class TestApiFunctions(unittest.TestCase):
         # Leave one worker remaining for comparison at the end
         num_of_requests = num_of_workers - 1
         # Automatic flooring care of Python
-        test_workers, workers_list = [], []
+        test_workers = []
         for worker in range(num_of_workers):
             # Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
@@ -373,6 +377,7 @@ class TestApiFunctions(unittest.TestCase):
         for request in range(num_of_requests):
             random_worker = random.randrange(len(test_workers))
             api.destroy_worker(test_workers.pop(random_worker))
+        workers_list = []
         workers_list = api.get_workers()
         # Verify that the workers list contains exactly one worker
         self.assertEqual(len(workers_list), 1)
@@ -397,7 +402,7 @@ class TestApiFunctions(unittest.TestCase):
             api.update_heartbeat(to_be_deleted)
 
     def test_update_heartbeat_one_worker(self):
-        test_workers, workers_list = [], []
+        test_workers = []
         # Create one worker and it to a list for bookkeeping
         test_workers.append(api.create_worker())
         # Get the original heartbeat of the only worker
@@ -406,6 +411,7 @@ class TestApiFunctions(unittest.TestCase):
         # Old heartbeat is before checkpoint, new heartbeat should be after
         checkpoint1 = datetime.now()
         api.update_heartbeat(test_workers[0])
+        workers_list = []
         workers_list = api.get_workers()
         checkpoint2 = datetime.now()
         # Verify that the heartbeat has been updated correctly and previous
@@ -415,13 +421,14 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_update_heartbeat_one_worker_many_requests(self):
         num_of_requests = 10
-        test_workers, workers_list = [], []
+        test_workers = []
         # Create many workers and them to a list for bookkeeping
         test_workers.append(api.create_worker())
         # Get the original heartbeat of the only worker
         previous_heartbeats = []
         previous_heartbeats.append(test_workers[0].heartbeat)
         checkpoint1 = datetime.now()
+        workers_list = []
         for request in range(num_of_requests):
             api.update_heartbeat(test_workers[0])
             workers_list = api.get_workers()
@@ -433,7 +440,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_update_heartbeat_many_workers_many_requests(self):
         num_of_workers = 10
-        test_workers, workers_list= [], []
+        test_workers = []
         previous_heartbeats = []
         # Create many workers and them to a list for bookkeeping
         for worker in range(num_of_workers):
@@ -444,6 +451,7 @@ class TestApiFunctions(unittest.TestCase):
         checkpoint1 = datetime.now()
         for worker in test_workers:
             api.update_heartbeat(worker)
+        workers_list = []
         workers_list = api.get_workers()
         checkpoint2 = datetime.now()
         # Verify that the heartbeats have been updated correctly and previous
@@ -457,7 +465,7 @@ class TestApiFunctions(unittest.TestCase):
     def test_update_heartbeat_many_workers_random_worker(self):
         # Number of workers and floor(requests) + ceiling(requests) are equal 
         num_of_workers = 10
-        test_workers, workers_list= [], []
+        test_workers = []
         previous_heartbeats = []
         # Create many workers and them to a list for bookkeeping
         for worker in range(num_of_workers):
@@ -468,6 +476,7 @@ class TestApiFunctions(unittest.TestCase):
             previous_heartbeats.append(worker.heartbeat)
             random_worker = random.randrange(num_of_workers)
         api.update_heartbeat(test_workers[random_worker])
+        workers_list = []
         workers_list = api.get_workers()
         checkpoint2 = datetime.now()
         # Verify that the random worker's heartbeat has been updated correctly
@@ -630,6 +639,96 @@ class TestApiFunctions(unittest.TestCase):
         # Verify that the information we get matches what was set
         check_schedule_fields(self, schedules_for_workers, 
         test_schedules)
+
+#### TEST DESTORY_WORKER(Worker) ####
+    def test_remove_schedule_empty_schedules(self):
+        test_schedules = []
+        # Verify that we do not destroy nonexistent workers
+        with self.assertRaises(ValueError):
+            api.destroy_worker(test_schedules)
+
+    def test_remove_schedule_one_schedule(self):
+        num_of_jobs = 1
+        num_of_schedules = num_of_jobs
+        # Create a crontab with one job
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create one worker and add them to a list for bookkeeping
+        test_workers.append(api.create_worker())
+        # Create a schedule for the only job
+        test_schedules = []
+        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
+        test_workers[0]))
+        api.add_schedules(test_schedules)
+        # Kill the only schedule in the list
+        api.remove_schedule(test_schedules[0])
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the schedules list is empty
+        self.assertFalse(len(schedules_list))
+
+    def test_remove_schedule_many_schedules(self):
+        # Number of jobs and floor(requests) + ceiling(requests) are equal 
+        num_of_jobs = 9
+        num_of_schedules = num_of_jobs
+        # Automatic flooring care of Python
+        num_of_requests = num_of_jobs/2 
+        # Create a crontab with many jobs
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create one worker and add them to a list for bookkeeping
+        test_workers.append(api.create_worker())
+        # Create a schedule for many jobs
+        test_schedules = []
+        for schedule in range(num_of_schedules):
+            test_schedules.append(api.Schedule(datetime.now(),
+            test_jobs[schedule], test_workers[0]))
+        api.add_schedules(test_schedules)
+        # Kill the floor of half of the workers in the list
+        for request in range(num_of_requests):
+            api.remove_schedule(test_schedules.pop())
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the correct remaining schedules are still in the list
+        check_schedule_fields(self, schedules_list, test_schedules)
+        # Remove all remaining test schedules
+        while test_schedules:
+            api.remove_schedule(test_schedules.pop())
+        # Try to get schedules from an empty pool
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the next worker does not exist
+        self.assertFalse(len(schedules_list))
+
+    def test_destroy_schedules_many_schedules_random_schedules(self):
+        # Number of jobs and floor(requests) + ceiling(requests) are equal 
+        num_of_jobs = 9
+        num_of_schedules = num_of_jobs
+        # Leave one schedule remaining for comparison at the end
+        num_of_requests = num_of_jobs - 1
+        # Create a crontab with many jobs
+        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
+        api.set_jobs(test_jobs, uids['uid1'])
+        jobs_list = api.get_jobs()
+        test_workers = []
+        # Create one worker and add them to a list for bookkeeping
+        test_workers.append(api.create_worker())
+        test_schedules = []
+        for schedule in range(num_of_schedules):
+            test_schedules.append(api.Schedule(datetime.now(),
+            test_jobs[schedule], test_workers[0]))
+        api.add_schedules(test_schedules)
+        # Kill number of requests random schedules in the list
+        for request in range(num_of_requests):
+            random_schedule = random.randrange(len(test_schedules))
+            api.remove_schedule(test_schedules.pop(random_schedule))
+        schedules_list = []
+        schedules_list = api.get_schedules(test_workers[0])
+        # Verify that the schedules list contains exactly one schedule
+        self.assertEqual(len(schedules_list), 1)
+        # Verify that the correct remaining schedule is still in the list
+        check_schedule_fields(self, schedules_list, test_schedules)
 
 if __name__ == '__main__':
     unittest.main()
