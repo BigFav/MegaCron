@@ -88,24 +88,9 @@ def add_schedules(schedules):
         file['schedules'].extend(schedules)
 
 
-def add_schedule(schedule):
-    with OpenFileLocked(write=True) as file:
-        file['schedules'].append(schedule)
-
-
 def remove_schedule(schedule):
     with OpenFileLocked(write=True) as file:
         file['schedules'].remove(schedule)
-
-
-def get_heartbeat(worker):
-    with OpenFileLocked() as file:
-        for w in file['workers']:
-            if w == worker:
-                return w
-                break
-
-    return None
 
 
 def update_heartbeat(worker):
