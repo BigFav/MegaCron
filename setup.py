@@ -22,9 +22,6 @@ setup(
         'python-daemon',
         'lockfile'
     ],
-    package_data={
-        'megacron': ['conf/megacron.conf']
-    },
     data_files=[
         ('/etc', ['megacron/conf/megacron.conf'])
     ],
