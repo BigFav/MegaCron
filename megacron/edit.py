@@ -1,7 +1,6 @@
 import argparse
 import os
 import pwd
-import re
 import sys
 import subprocess
 import tempfile
@@ -18,9 +17,8 @@ def _print_usage(self, file=None):
     if file is None:
         file = sys.stdout
     # Only inserted line to adjust printed usage to fit implicit rule
-    usage_str = re.sub("\[-e \| -r \| -l \| file\]",
-                       "{-e | -r | -l | file}",
-                       self.format_usage())
+    usage_str = self.format_usage().replace("[-e | -r | -l | file]",
+                                            "{-e | -r | -l | file}", 1)
     self._print_message(usage_str, file)
 argparse.ArgumentParser.print_usage = _print_usage
 
@@ -29,9 +27,8 @@ def _print_help(self, file=None):
     if file is None:
         file = sys.stdout
     # Only inserted line to adjust printed usage to fit implicit rule
-    help_str = re.sub("\[-e \| -r \| -l \| file\]",
-                      "{-e | -r | -l | file}",
-                      self.format_help())
+    help_str = self.format_help().replace("[-e | -r | -l | file]",
+                                          "{-e | -r | -l | file}", 1)
     self._print_message(help_str, file)
 argparse.ArgumentParser.print_help = _print_help
 
@@ -71,9 +68,8 @@ def parse_args():
 
 
 def get_crontab(opts, valid_crontab, tb_file):
+    old_cron = api.get_crontab(opts.usr[0])
     if (opts.file is False) or (valid_crontab is False):
-        old_cron = api.get_crontab(opts.usr[0])
-
         # Perform list operation
         if opts.lst:
             lst = old_cron if old_cron else "No crontab for %s." % opts.usr[1]
@@ -108,24 +104,28 @@ def get_crontab(opts, valid_crontab, tb_file):
     elif opts.file:
         tb_file = opts.file
 
-    return tb_file
+    old_tab = set(old_cron.split('\n')) if old_cron else set()
+    return (tb_file, old_tab)
 
 
-def process_edits(uid, tb_file, using_local_file):
+def process_edits(uid, tb_file, using_local_file, old_tab):
     crontab = []
     jobs = []
+    old_jobs = api.get_jobs_for_user(uid)
     with open(tb_file, 'r') as tab:
         for line in tab:
             line = line.strip()
             crontab.append(line)
             # Ignore newlines and full line comments
             if line and (line[0] != '#'):
-                line = line.split()
-                interval = ' '.join(line[:5])
-                cmd = ' '.join(line[5:])
+                split = line.split()
+                interval = ' '.join(split[:5])
+                cmd = ' '.join(split[5:])
                 try:
                     # Ensure the crontab line is valid
                     croniter(interval)
+                    if not cmd:
+                        raise ValueError
                 except (KeyError, ValueError):
                     # Otherwise prompt user to edit crontab
                     e_str = ("The crontab you entered has invalid entries, "
@@ -140,7 +140,19 @@ def process_edits(uid, tb_file, using_local_file):
                             return False
                         e_str = "Please enter y or n: "
 
-                jobs.append(api.Job(interval, cmd, uid, datetime.now()))
+                # Check if job was already there
+                job = None
+                if line in old_tab:
+                    for old_job in old_jobs:
+                        if (old_job.interval == interval and 
+                               old_job.command == cmd):
+                            job = old_job
+                            old_jobs.remove(old_job)
+                            break
+                if not job:
+                    old_tab.discard(line)
+                    job = api.Job(interval, cmd, uid, datetime.now())
+                jobs.append(job)
 
     if using_local_file is False:
         os.unlink(tb_file)
@@ -184,9 +196,9 @@ def main():
                 e_str = "Please enter y or n: "
 
         api.set_jobs([], opts.usr[0])
-        api.set_crontab(None, opts.usr[0])
+        api.set_crontab(False, opts.usr[0])
         sys.exit(0)
 
     while not valid_crontab:
-        tb_file = get_crontab(opts, valid_crontab, tb_file)
-        valid_crontab = process_edits(opts.usr[0], tb_file, opts.file)
+        tb_file, old_tab = get_crontab(opts, valid_crontab, tb_file)
+        valid_crontab = process_edits(opts.usr[0], tb_file, opts.file, old_tab)
