@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Megacron',
-    version='0.3.2',
+    version='0.4',
     description='Distributed Cron Replacement',
     author='John Tanner, Favian Contreras, Ben Zeghers',
     author_email='megacronteam@gmail.com',
@@ -25,6 +25,14 @@ setup(
     data_files=[
         ('/etc', ['megacron/conf/megacron.conf'])
     ],
+    # Tests
+    #
+    # Tests must be wrapped in a unittest test suite by either a
+    # function, a TestCase class or method, or a module or package
+    # containing TestCase classes. If the named suite is a package,
+    # any submodules and subpackages are recursively added to the
+    # overall test suite.
+    test_suite='tests.unit_tests',
     setup_requires=["setuptools_git >= 0.3"],
     url='https://www.mediawiki.org/wiki/Facebook_Open_Academy/Cron',
     license='Creative Commons Attribution-Noncommercial-Share Alike license',

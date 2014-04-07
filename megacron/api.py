@@ -98,7 +98,9 @@ def update_heartbeat(worker):
         for w in file['workers']:
             if w == worker:
                 w.heartbeat = datetime.now()
-                break
+                return
+        raise ValueError("Worker: " + str(worker) + " could not be updated." \
+        + " Are you certain that it exists?")
 
 
 def get_next_worker():

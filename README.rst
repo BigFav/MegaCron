@@ -59,3 +59,15 @@ To uninstall:
 
     sudo ./setup.py develop --uninstall
     sudo rm /etc/megacron.conf /usr/bin/megacron*
+
+Testing
+-------
+
+To run unit tests to verify expected api functionality:
+
+::
+
+    sudo ./setup.py [-q] test [-v]
+
+Note that the optional q flag is for quieting setup messages and the v flag
+is for verbose test output.
