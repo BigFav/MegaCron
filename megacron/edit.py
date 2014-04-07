@@ -144,8 +144,8 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                 job = None
                 if line in old_tab:
                     for old_job in old_jobs:
-                        if (old_job.interval == interval and 
-                               old_job.command == cmd):
+                        if (old_job.interval == interval and
+                                old_job.command == cmd):
                             job = old_job
                             old_jobs.remove(old_job)
                             break
