@@ -27,8 +27,10 @@ def get_next_schedule_time():
         for schedule in api.get_schedules(worker):
             if (comp > schedule.time_to_run > now):
                 comp = schedule.time_to_run
-    print "The next job will be ran at " + comp.strftime("%d %B %Y %I:%M%p")
-
+    if (comp != datetime.max):
+        print "The next job will run at " + comp.strftime("%d %B %Y %I:%M%p")
+    else:
+        print "No scheduled jobs to run"
 
 def get_num_users():
     users = set()
