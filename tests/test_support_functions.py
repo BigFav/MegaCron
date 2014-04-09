@@ -11,7 +11,6 @@ TAB_FILE = './test.tab'
 api.FILE_NAME = './testdb.p'
 
 uid = os.getuid()
-uids = { 'uid1': uid+1, 'uid2': uid+2, 'uid3':uid+3, 'uid4':uid+4 }
 
 def cleanup():
     # Kill the temporary tab file
@@ -49,10 +48,10 @@ def check_schedule_fields(self, schedules_list, test_schedules):
 
 def check_heartbeat_value(self, worker, previous_heartbeats, checkpoint1,
 checkpoint2, current):
-            self.assertTrue(worker.heartbeat > checkpoint1
-            and worker.heartbeat < checkpoint2 
-            and worker.heartbeat > previous_heartbeats[current]
-            and previous_heartbeats[current] < checkpoint1)
+        self.assertTrue(worker.heartbeat > checkpoint1
+        and worker.heartbeat < checkpoint2 
+        and worker.heartbeat > previous_heartbeats[current]
+        and previous_heartbeats[current] < checkpoint1)
 
 def create_test_tab(num_of_jobs, uid):
     # Will contain parsed auto-generated crontab entries
@@ -66,16 +65,27 @@ def create_test_tab(num_of_jobs, uid):
         job_num += 1
     with open(TAB_FILE,'w') as tab:
         for line in cron_strings.iterkeys():
+            rand = random.randrange(100)
+            # Approximately 30% chance that we will include a comment
+            if(rand > 85):
+                tab.write('#')
+            if(rand >= 70 and rand < 85):
+                tab.write('# ')
+            # Approximately 15% chance that we will include a blank line
+            if(rand >= 50 and rand < 70):
+                tab.write('\n')
             for item in cron_strings[line]:
                 tab.write(item)
     # Will contain assembled job-interval strings
     test_jobs = []
     with open(TAB_FILE, 'r') as tab:
         for job in tab:
-            tmp = job.strip().split(' ')
-            interval = string.joinfields(tmp[:5], ' ')
-            cmd = string.joinfields(tmp[5:], ' ')
-            test_jobs.append(api.Job(interval, cmd, uid, datetime.now()))
+            first_char = job[0]
+            if first_char != '\n':
+                tmp = job.strip().split(' ')
+                interval = string.joinfields(tmp[:5], ' ')
+                cmd = string.joinfields(tmp[5:], ' ')
+                test_jobs.append(api.Job(interval, cmd, uid, datetime.now()))
     return test_jobs
 
 def create_test_commands(job_num, cron_job):
