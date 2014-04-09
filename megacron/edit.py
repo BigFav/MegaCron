@@ -70,6 +70,8 @@ def parse_args():
 def get_crontab(opts, valid_crontab, tb_file):
     old_cron = api.get_crontab(opts.usr[0])
     if (opts.file is False) or (valid_crontab is False):
+        old_cron = api.get_crontab(opts.usr[0])
+
         # Perform list operation
         if opts.lst:
             lst = old_cron if old_cron else "No crontab for %s." % opts.usr[1]

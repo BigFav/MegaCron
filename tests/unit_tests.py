@@ -6,12 +6,25 @@ import random
 import math
 from datetime import datetime
 
-from test_support_functions import create_test_tab, cleanup, uids, \
+from test_support_functions import create_test_tab, cleanup, uid, \
      check_job_fields, check_worker_fields, check_schedule_fields, \
-     check_heartbeat_value
+     check_heartbeat_value, TAB_FILE
 from megacron import api
 
 api.FILE_NAME = './testdb.p'
+
+# Generally safe to adjust
+user1 = uid+1
+user2 = uid+2
+user3 = uid+3
+user4 = uid+4
+
+# Adjust these to your heart's will (within reason)
+ZERO = 0
+ONE = 1
+SOME = 4
+MANY = 10
+MORE_THAN_MANY = 12
 
 class TestApiFunctions(unittest.TestCase):        
 
@@ -20,114 +33,111 @@ class TestApiFunctions(unittest.TestCase):
 
 #### TEST GET_JOBS() ####
     def test_get_jobs_empty_jobs(self):
-        num_of_jobs = 0
+        num_of_jobs = ZERO
         # Create a crontab with zero jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         # Verify that the jobs list is empty
         self.assertEqual(len(jobs_list), num_of_jobs)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list, test_jobs, uids['uid1'])
+        check_job_fields(self, jobs_list, test_jobs, user1)
 
     def test_get_jobs_one_job(self):
-        num_of_jobs = 1
+        num_of_jobs = ONE
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         # Verify that the jobs list contains exactly one job
         self.assertEqual(len(jobs_list), num_of_jobs)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list, test_jobs, uids['uid1'])
+        check_job_fields(self, jobs_list, test_jobs, user1)
 
     def test_get_jobs_many_jobs(self):
-        num_of_jobs = 10
+        num_of_jobs = MANY
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         self.assertEqual(len(jobs_list), num_of_jobs)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list, test_jobs, uids['uid1'])
+        check_job_fields(self, jobs_list, test_jobs, user1)
 
 #### TEST GET_JOBS_FOR_USER(uid) ####
     def test_get_jobs_for_user_empty_jobs(self):
-        num_of_jobs = 0
+        num_of_jobs = ZERO
         # Create a crontab with zero jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
-        jobs_list_uid1 = api.get_jobs_for_user(uids['uid1'])
-        # Verify that the jobs list for uid1 is empty
-        self.assertFalse(len(jobs_list_uid1))
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        jobs_list_user1 = api.get_jobs_for_user(user1)
+        # Verify that the jobs list for user1 is empty
+        self.assertFalse(len(jobs_list_user1))
 
     def test_get_jobs_for_user_many_jobs(self):
-        num_of_jobs = 10
+        num_of_jobs = MANY
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
-        jobs_list_uid1 = api.get_jobs_for_user(uids['uid1'])
-        # Verify that the jobs list for uid1
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        jobs_list_user1 = api.get_jobs_for_user(user1)
+        # Verify that the jobs list for user1
         # contains the correct number of jobs
-        self.assertEqual(len(jobs_list_uid1), num_of_jobs)
+        self.assertEqual(len(jobs_list_user1), num_of_jobs)
 
-    def test_get_jobs_for_user_some_users_some_jobs(self):
-        num_of_jobs_uid1 = 1
-        # Add one job to the tabfile for uid1
-        test_jobs_uid1 = create_test_tab(num_of_jobs_uid1, uids['uid1'])
-        api.set_jobs(test_jobs_uid1, uids['uid1'])
-        jobs_list_uid1 = api.get_jobs_for_user(uids['uid1'])
+    def test_get_jobs_for_user_different_users_some_jobs(self):
+        num_of_jobs_user1 = ONE
+        # Add one job to the tabfile for user1
+        test_jobs_user1 = create_test_tab(num_of_jobs_user1, user1)
+        api.set_jobs(test_jobs_user1, user1)
+        jobs_list_user1 = api.get_jobs_for_user(user1)
 
-        num_of_jobs_uid2 = 0
-        # Add zero jobs to the tabfile for uid2
-        test_jobs_uid2 = create_test_tab(num_of_jobs_uid2, uids['uid2'])
-        api.set_jobs(test_jobs_uid2, uids['uid2'])
-        jobs_list_uid2 = api.get_jobs_for_user(uids['uid2'])
+        num_of_jobs_user2 = ZERO
+        # Add zero jobs to the tabfile for user2
+        test_jobs_user2 = create_test_tab(num_of_jobs_user2, user2)
+        api.set_jobs(test_jobs_user2, user2)
+        jobs_list_user2 = api.get_jobs_for_user(user2)
 
-        num_of_jobs_uid3 = 4
-        # Add some jobs to the tabfile for uid3
-        test_jobs_uid3 = create_test_tab(num_of_jobs_uid3, uids['uid3'])
-        api.set_jobs(test_jobs_uid3, uids['uid3'])
-        jobs_list_uid3 = api.get_jobs_for_user(uids['uid3'])
+        num_of_jobs_user3 = SOME
+        # Add some jobs to the tabfile for user3
+        test_jobs_user3 = create_test_tab(num_of_jobs_user3, user3)
+        api.set_jobs(test_jobs_user3, user3)
+        jobs_list_user3 = api.get_jobs_for_user(user3)
 
-        # Verify that the jobs list for uid1 contains
+        # Verify that the jobs list for user1 contains
         # the correct number of jobs
-        self.assertEqual(len(jobs_list_uid1), num_of_jobs_uid1)
-        # Verify that the jobs list for uid2 contains
+        self.assertEqual(len(jobs_list_user1), num_of_jobs_user1)
+        # Verify that the jobs list for user2 contains
         # the correct number of jobs
-        self.assertEqual(len(jobs_list_uid2), num_of_jobs_uid2)
-        # Verify that the jobs list for uid3 contains
+        self.assertEqual(len(jobs_list_user2), num_of_jobs_user2)
+        # Verify that the jobs list for user3 contains
         # the correct number of jobs
-        self.assertEqual(len(jobs_list_uid3), num_of_jobs_uid3)
+        self.assertEqual(len(jobs_list_user3), num_of_jobs_user3)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list_uid1, test_jobs_uid1, 
-        uids['uid1'])
+        check_job_fields(self, jobs_list_user1, test_jobs_user1, user1)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list_uid2, test_jobs_uid2,
-        uids['uid2'])
+        check_job_fields(self, jobs_list_user2, test_jobs_user2, user2)
         # Verify that the information we get matches what was set
-        check_job_fields(self, jobs_list_uid3, test_jobs_uid3,
-        uids['uid3'])
+        check_job_fields(self, jobs_list_user3, test_jobs_user3, user3)
 
     def test_get_jobs_for_user_some_users_empty_jobs(self):
-        jobs_list_uid4 = api.get_jobs_for_user(uids['uid4'])
-        # Verify that the jobs_list for uid4 is empty       
-        self.assertFalse(len(jobs_list_uid4))
-        num_of_jobs_uid1 = 1
-        # Add one job to the tabfile uid1
-        test_jobs_uid1 = create_test_tab(num_of_jobs_uid1, uids['uid1'])
-        api.set_jobs(test_jobs_uid1, uids['uid1'])
-        jobs_list_uid4 = api.get_jobs_for_user(uids['uid4'])
-        # Verify that the jobs_list for uid4 is empty
-        self.assertFalse(len(jobs_list_uid4))
+        jobs_list_user4 = api.get_jobs_for_user(user4)
+        # Verify that the jobs_list for user4 is empty       
+        self.assertFalse(len(jobs_list_user4))
+        num_of_jobs_user1 = ONE
+        # Add one job to the tabfile user1
+        test_jobs_user1 = create_test_tab(num_of_jobs_user1, user1)
+        api.set_jobs(test_jobs_user1, user1)
+        jobs_list_user4 = api.get_jobs_for_user(user4)
+        # Verify that the jobs_list for user4 is empty
+        self.assertFalse(len(jobs_list_user4))
 
 #### TEST SET_JOBS([Job], uid) ####
     def test_set_jobs_empty_jobs(self):
         checkpoint1 = datetime.now()
-        num_of_jobs = 0
+        num_of_jobs = ZERO
         # Create a crontab with zero jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
         db_creation_time \
         = datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
@@ -141,10 +151,10 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_set_jobs_one_job(self):
         checkpoint1 = datetime.now()
-        num_of_jobs = 1
+        num_of_jobs = ONE
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
         db_creation_time = \
         datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
@@ -159,10 +169,10 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_set_jobs_many_jobs(self):
         checkpoint1 = datetime.now()
-        num_of_jobs = 10
+        num_of_jobs = MANY
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
         db_creation_time = \
         datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
@@ -178,10 +188,10 @@ class TestApiFunctions(unittest.TestCase):
 #### TEST SET_JOB_TIME(Job) ####
     def test_set_job_time_one_job(self):
         checkpoint1 = datetime.now()
-        num_of_jobs = 1
+        num_of_jobs = ONE
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         # Pop the only job in the list to modify its time
         job = test_jobs.pop()
         api.set_job_time(job)
@@ -192,10 +202,10 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_set_job_time_random_job_from_many(self):
         checkpoint1 = datetime.now()
-        num_of_jobs = 10
+        num_of_jobs = MANY
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         # Pop a random job in list to modify its time
         job = test_jobs.pop(random.randrange(len(test_jobs)))
         api.set_job_time(job)
@@ -219,7 +229,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_create_worker_many_workers(self):
         checkpoint1 = datetime.now()
-        num_of_workers = 10
+        num_of_workers = MANY
         test_workers = []
         for job in range(num_of_workers):
         	# Create many workers and add them to a list for bookkeeping
@@ -234,13 +244,13 @@ class TestApiFunctions(unittest.TestCase):
 
 #### TEST GET_WORKERS() ####
     def test_get_workers_empty_workers(self):
-    	num_of_workers = 0
+    	num_of_workers = ZERO
     	workers_list = api.get_workers()
     	# Verify that workers list is empty
     	self.assertFalse(len(workers_list))
 
     def test_get_workers_one_worker(self):
-    	num_of_workers = 1
+    	num_of_workers = ONE
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
         test_workers.append(api.create_worker())
@@ -251,7 +261,7 @@ class TestApiFunctions(unittest.TestCase):
         check_worker_fields(self, workers_list, test_workers)
 
     def test_get_workers_many_workers(self):
-    	num_of_workers = 10
+    	num_of_workers = MANY
         test_workers = []
         for job in range(num_of_workers):
         	# Create workers and add them to a list for bookkeeping
@@ -269,7 +279,7 @@ class TestApiFunctions(unittest.TestCase):
     	self.assertEqual(next_worker, None)
 
     def test_get_next_worker_one_worker(self):
-    	num_of_workers = 1
+    	num_of_workers = ONE
     	test_workers = []
     	# Create one worker and add it to a list for bookkeeping
     	test_workers.append(api.create_worker())
@@ -281,8 +291,8 @@ class TestApiFunctions(unittest.TestCase):
     	check_worker_fields(self, workers_list, test_workers)
 
     def test_get_next_worker_one_worker_many_requests(self):
-    	num_of_workers = 1
-    	num_of_requests = 10
+    	num_of_workers = ONE
+    	num_of_requests = MANY
     	test_workers = []
     	# Create one worker and it to a list for bookkeeping
     	test_workers.append(api.create_worker())
@@ -300,8 +310,8 @@ class TestApiFunctions(unittest.TestCase):
         check_worker_fields(self, workers_list, test_workers)
 
     def test_get_next_worker_many_workers_more_requests(self):
-        num_of_workers = 10
-        num_of_requests = 12
+        num_of_workers = MANY
+        num_of_requests = MORE_THAN_MANY
         test_workers = []
         for worker in range(num_of_workers):
             # Create many workers and add them to a list for bookkeeping
@@ -341,7 +351,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_destroy_worker_many_workers(self):
         # Number of workers and floor(requests) + ceiling(requests) are equal 
-        num_of_workers = 9
+        num_of_workers = MANY
         # Automatic flooring care of Python
         num_of_requests = num_of_workers/2
         test_workers = []
@@ -365,7 +375,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_destroy_worker_many_workers_random_workers(self):
         # Number of workers and floor(requests) + ceiling(requests) are equal 
-        num_of_workers = 9
+        num_of_workers = MANY
         # Leave one worker remaining for comparison at the end
         num_of_requests = num_of_workers - 1
         # Automatic flooring care of Python
@@ -420,7 +430,7 @@ class TestApiFunctions(unittest.TestCase):
         checkpoint1, checkpoint2, 0)
 
     def test_update_heartbeat_one_worker_many_requests(self):
-        num_of_requests = 10
+        num_of_requests = MANY
         test_workers = []
         # Create many workers and them to a list for bookkeeping
         test_workers.append(api.create_worker())
@@ -439,7 +449,7 @@ class TestApiFunctions(unittest.TestCase):
             checkpoint1, checkpoint2, 0)
 
     def test_update_heartbeat_many_workers_many_requests(self):
-        num_of_workers = 10
+        num_of_workers = MANY
         test_workers = []
         previous_heartbeats = []
         # Create many workers and them to a list for bookkeeping
@@ -464,7 +474,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_update_heartbeat_many_workers_random_worker(self):
         # Number of workers and floor(requests) + ceiling(requests) are equal 
-        num_of_workers = 10
+        num_of_workers = MANY
         test_workers = []
         previous_heartbeats = []
         # Create many workers and them to a list for bookkeeping
@@ -486,11 +496,11 @@ class TestApiFunctions(unittest.TestCase):
 
 #### TEST ADD_SCHEDULES([Schedule]) ####
     def test_add_schedules_one_job_one_schedule(self):
-        num_of_jobs = 1
+        num_of_jobs = ONE
         num_of_schedules = num_of_jobs
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -505,11 +515,11 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEqual(len(schedules_list), num_of_schedules)
 
     def test_add_schedules_one_job_many_schedules(self):
-        num_of_jobs = 1
-        num_of_schedules = 10
+        num_of_jobs = ONE
+        num_of_schedules = MANY
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -525,11 +535,11 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEqual(len(schedules_list), num_of_schedules)
 
     def test_add_schedules_many_jobs_many_schedules(self):
-        num_of_jobs = 10
+        num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -546,11 +556,11 @@ class TestApiFunctions(unittest.TestCase):
 
 #### TEST GET_SCHEDULES(Worker) ####
     def test_get_schedules_one_worker_one_schedule(self):
-        num_of_jobs = 1
+        num_of_jobs = ONE
         num_of_schedules = num_of_jobs
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -566,10 +576,10 @@ class TestApiFunctions(unittest.TestCase):
 
 
     def test_get_schedules_one_worker_many_schedules(self):
-        num_of_jobs = 10
+        num_of_jobs = MANY
         num_of_schedules = num_of_jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -585,11 +595,11 @@ class TestApiFunctions(unittest.TestCase):
         check_schedule_fields(self, schedules_list, test_schedules)
 
     def test_get_schedules_many_workers_one_schedule(self):
-        num_of_jobs = 1
+        num_of_jobs = ONE
         num_of_schedules = num_of_jobs
-        num_of_workers = 10
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        num_of_workers = MANY
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create many workers and add them to a list for bookkeeping
@@ -612,12 +622,12 @@ class TestApiFunctions(unittest.TestCase):
         test_schedules)
 
     def test_get_schedules_many_workers_many_schedules(self):
-        num_of_jobs = 10
+        num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         num_of_workers = num_of_schedules
-        num_of_workers = 10
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        num_of_workers = MANY
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create many workers and add them to a list for bookkeeping
@@ -648,11 +658,11 @@ class TestApiFunctions(unittest.TestCase):
             api.destroy_worker(test_schedules)
 
     def test_remove_schedule_one_schedule(self):
-        num_of_jobs = 1
+        num_of_jobs = ONE
         num_of_schedules = num_of_jobs
         # Create a crontab with one job
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -670,13 +680,13 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_remove_schedule_many_schedules(self):
         # Number of jobs and floor(requests) + ceiling(requests) are equal 
-        num_of_jobs = 9
+        num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         # Automatic flooring care of Python
         num_of_requests = num_of_jobs/2 
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -701,15 +711,15 @@ class TestApiFunctions(unittest.TestCase):
         # Verify that the next worker does not exist
         self.assertFalse(len(schedules_list))
 
-    def test_destroy_schedules_many_schedules_random_schedules(self):
+    def test_remove_schedules_many_schedules_random_schedules(self):
         # Number of jobs and floor(requests) + ceiling(requests) are equal 
-        num_of_jobs = 9
+        num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         # Leave one schedule remaining for comparison at the end
         num_of_requests = num_of_jobs - 1
         # Create a crontab with many jobs
-        test_jobs = create_test_tab(num_of_jobs, uids['uid1'])
-        api.set_jobs(test_jobs, uids['uid1'])
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
         jobs_list = api.get_jobs()
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
@@ -729,6 +739,100 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEqual(len(schedules_list), 1)
         # Verify that the correct remaining schedule is still in the list
         check_schedule_fields(self, schedules_list, test_schedules)
+
+#### TEST SET_CRONTAB(crontab, user_id) ####
+    def test_set_crontab_empty_jobs(self):
+        num_of_jobs = ZERO
+        # Create a crontab with zero jobs
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        api.set_crontab(crontab, user1)
+        test_crontab = api.get_crontab(user1)
+        self.assertEqual(crontab, test_crontab)
+
+    def test_set_crontab_one_job(self):
+        num_of_jobs = ONE
+        # Create a crontab with one jobs
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        test_crontab = api.get_crontab(user1)
+        self.assertEquals(test_crontab, False)
+        api.set_crontab(crontab, user1)
+        test_crontab = api.get_crontab(user1)
+        self.assertEqual(crontab, test_crontab)
+
+    def test_set_crontab_many_jobs(self):
+        num_of_jobs = MANY
+        # Create a crontab with many jobs
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        test_crontab = api.get_crontab(user1)
+        self.assertEquals(test_crontab, False)
+        api.set_crontab(crontab, user1)
+        test_crontab = api.get_crontab(user1)
+        self.assertEqual(crontab, test_crontab)        
+
+#### TEST GET_CRONTAB(User) ####
+    def test_get_crontab_missing_crontab(self):
+        crontab = api.get_crontab(user1)
+        # Verify that the crontab is empty
+        self.assertEqual(crontab, False)
+
+    def test_get_crontab_empty_jobs(self):
+        num_of_jobs = ZERO
+        # Create a crontab with zero jobs
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        crontab = api.get_crontab(user1)
+        # Verify that the crontab is empty
+        self.assertEqual(crontab, False)
+
+    def test_get_crontab_one_job(self):
+        num_of_jobs = ONE
+        # Create a crontab with one job
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        api.set_crontab(crontab, user1)
+        test_crontab = api.get_crontab(user1)
+        self.assertEqual(crontab, test_crontab)
+
+    def test_get_crontab_many_jobs(self):
+        num_of_jobs = MANY
+        # Create a crontab with many jobs
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        api.set_crontab(crontab, user1)
+        test_crontab = api.get_crontab(user1)
+        self.assertEqual(crontab, test_crontab)
+
+    def test_get_crontab_different_users_many_jobs(self):
+        num_of_jobs = MANY
+        # Create a crontab with many jobs for another user from crontab owner
+        test_jobs = create_test_tab(num_of_jobs, user1)
+        api.set_jobs(test_jobs, user1)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        api.set_crontab(crontab, user2)
+        test_crontab = api.get_crontab(user2)
+        self.assertEqual(crontab, test_crontab)
+        # Append crontab for another user
+        test_jobs = create_test_tab(num_of_jobs, user3)
+        api.set_jobs(test_jobs, user3)
+        with open(TAB_FILE, 'r') as tabfile:
+            crontab = tabfile.read()
+        api.set_crontab(crontab, user3)
+        test_crontab = api.get_crontab(user3)
+        self.assertEqual(crontab, test_crontab)
 
 if __name__ == '__main__':
     unittest.main()
