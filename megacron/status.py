@@ -3,6 +3,8 @@ from datetime import datetime
 
 from megacron import api
 
+import argparse
+
 
 def get_worker_status():
     L = len(api.get_workers())
@@ -32,6 +34,7 @@ def get_next_schedule_time():
     else:
         print "No scheduled jobs to run"
 
+
 def get_num_users():
     users = set()
     for job in api.get_jobs():
@@ -54,8 +57,29 @@ def get_num_schedules():
 
 
 def main():
-    get_worker_status()
-    get_num_jobs()
-    get_num_schedules()
-    get_next_schedule_time()
-    get_num_users()
+    parser = argparse.ArgumentParser(description='Provides stats for MegaCron')
+    parser.add_argument("-ws", "--workerstatus", help="show worker status",
+                        action="store_true")
+    parser.add_argument("-nj", "--numjobs", help="show number of jobs",
+                        action="store_true")
+    parser.add_argument("-ns", "--numscheds", help="show number of schedules",
+                        action="store_true")
+    parser.add_argument("-xs", "--nextsched",
+                        help="show next scheduled job time",
+                        action="store_true")
+    parser.add_argument("-u", "--numusers",
+                        help="show number of users with jobs",
+                        action="store_true")
+    parser.add_argument("-a", "--all", help="show all status options",
+                        action="store_true")
+    args = parser.parse_args()
+    if args.all or args.workerstatus:
+        get_worker_status()
+    if args.all or args.numjobs:
+        get_num_jobs()
+    if args.all or args.numscheds:
+        get_num_schedules()
+    if args.all or args.nextsched:
+        get_next_schedule_time()
+    if args.all or args.numusers:
+        get_num_users()
