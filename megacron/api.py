@@ -99,8 +99,8 @@ def update_heartbeat(worker):
             if w == worker:
                 w.heartbeat = datetime.now()
                 return
-        raise ValueError("Worker: " + str(worker) + " could not be updated." \
-        + " Are you certain that it exists?")
+        raise ValueError("Worker: " + str(worker) + " could not be updated."
+                         " Are you certain that it exists?")
 
 
 def get_next_worker():
