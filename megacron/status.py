@@ -9,17 +9,17 @@ import argparse
 def get_worker_status():
     L = len(api.get_workers())
     if L == 1:
-        print "1 worker is up"
+        print("1 worker is up")
     else:
-        print "%d workers are up" % L
+        print("%d workers are up" % L)
 
 
 def get_num_jobs():
     L = len(api.get_jobs())
     if L == 1:
-        print "1 job in queue"
+        print("1 job in queue")
     else:
-        print "%d jobs in queue" % L
+        print("%d jobs in queue" % L)
 
 
 def get_next_schedule_time():
@@ -30,20 +30,20 @@ def get_next_schedule_time():
             if comp > schedule.time_to_run > now:
                 comp = schedule.time_to_run
     if comp != datetime.max:
-        print "The next job will run at " + comp.strftime("%d %B %Y %I:%M%p")
+        print("The next job will run at " + comp.strftime("%d %B %Y %I:%M%p"))
     else:
-        print "No scheduled jobs to run"
+        print("No scheduled jobs to run")
 
 
 def get_num_users():
     users = set()
     for job in api.get_jobs():
-        users.add(jobs.user_id)
+        users.add(job.user_id)
     L = len(users)
     if L == 1:
-        print "1 user has a job"
+        print("1 user has a job")
     else:
-        print "%d users have jobs" % L
+        print("%d users have jobs" % L)
 
 
 def get_num_schedules():
@@ -51,9 +51,9 @@ def get_num_schedules():
     for worker in api.get_workers():
         sum += len(api.get_schedules(worker))
     if sum == 1:
-        print "There is 1 schedule"
+        print("There is 1 schedule")
     else:
-        print "There are %d schedules" % sum
+        print("There are %d schedules" % sum)
 
 
 def main():
