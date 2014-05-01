@@ -4,23 +4,23 @@
 .SH NAME
 megacrontab \- maintain crontab files for individual users
 .SH SYNOPSIS
-megacrontab [-h] [-u USR] [-i] {-e | -r | -l | file}
+\fBmegacrontab\fR [\fB-h\fR] [\fB-u\fR \fIUSR\fR] [\fB-i\fR] {\fB-e\fR | \fB-r\fR | \fB-l\fR | \fIfile\fR}
 .SH DESCRIPTION
-megacrontab is the program used to install, deinstall or list the tables used to drive the megacrond(8) daemon.
+\fBmegacrontab\fR is the program used to install, deinstall or list the tables used to drive the megacrond(8) daemon.
 .SH OPTIONS
-If the -u option is given, it specifies the name of the user whose crontab is to be used (when listing) or modified (when editing). If this option is not given, crontab examines "your" crontab, i.e., the crontab of the person executing the command. Note that su(8) can confuse crontab and that if you are running inside of su(8) you should always use the -u option for safety's sake.
+If the \fB-u\fR option is given, it specifies the name of the user whose crontab is to be used (when listing) or modified (when editing). If this option is not given, crontab examines "your" crontab, i.e., the crontab of the person executing the command. Note that su(8) can confuse crontab and that if you are running inside of su(8) you should always use the -u option for safety's sake.
 
-The file option is a crontab filename that will be installed.
+The \fB-e\fR option is used to edit the current crontab using the editor specified by the VISUAL or EDITOR variables. If neither of the environment variables is defined, then the default editor /usr/bin/editor is used. Upon exit from the editor, the changes will be saved.
 
-The -e option is used to edit the current crontab using the editor specified by the VISUAL or EDITOR variables. If neither of the environment variables is defined, then the default editor /usr/bin/editor is used. Upon exit from the editor, the changes will be saved.
+The \fB-l\fR option causes the current crontab to be displayed on standard output.
 
-The -l option causes the current crontab to be displayed on standard output.
+The \fB-r\fR option causes the current crontab to be removed.
 
-The -r option causes the current crontab to be removed.
+The \fB-i\fR option modifies the \fB-r\fR option to prompt the user for a 'y/n' response before removing the crontab.
 
-The -i option modifies the -r option to prompt the user for a 'y/n' response before removing the crontab.
+The \fB-h\fR/\fB--help\fR option causes a help message to be displayed on standard output.
 
-The -h option causes a help message to be displayed on standard output.
+A file name provides a crontab file name that will be installed.
 .SH SEE ALSO
 megacrond(8)
 .SH BUGS
