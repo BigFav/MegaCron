@@ -1,26 +1,55 @@
 .\" Manpage for megacrontab.
 .\" Contact mpelletier@wikimedia.org to correct errors or typos.
-.TH megacrontab 1 "30 April 2014" "0.4" "megacrontab man page"
+.TH MEGACRONTAB 1 "1 May 2014" "0.4.1" "Wikimedia"
 .SH NAME
 megacrontab \- maintain crontab files for individual users
 .SH SYNOPSIS
-\fBmegacrontab\fR [\fB-h\fR] [\fB-u\fR \fIUSR\fR] [\fB-i\fR] {\fB-e\fR | \fB-r\fR | \fB-l\fR | \fIfile\fR}
+.B megacrontab
+[\fB-h\fR]
+[\fB-u\fR \fIUSR\fR]
+[\fB-i\fR]
+{\fB-e\fR | \fB-r\fR | \fB-l\fR | \fIfile\fR}
 .SH DESCRIPTION
-\fBmegacrontab\fR is the program used to install, deinstall or list the tables used to drive the megacrond(8) daemon.
+.B megacrontab
+is the program used to install, deinstall or list the tables used to drive the
+megacrond(8) daemon.
 .SH OPTIONS
-If the \fB-u\fR option is given, it specifies the name of the user whose crontab is to be used (when listing) or modified (when editing). If this option is not given, crontab examines "your" crontab, i.e., the crontab of the person executing the command. Note that su(8) can confuse crontab and that if you are running inside of su(8) you should always use the -u option for safety's sake.
-
-The \fB-e\fR option is used to edit the current crontab using the editor specified by the VISUAL or EDITOR variables. If neither of the environment variables is defined, then the default editor /usr/bin/editor is used. Upon exit from the editor, the changes will be saved.
-
-The \fB-l\fR option causes the current crontab to be displayed on standard output.
-
-The \fB-r\fR option causes the current crontab to be removed.
-
-The \fB-i\fR option modifies the \fB-r\fR option to prompt the user for a 'y/n' response before removing the crontab.
-
-The \fB-h\fR/\fB--help\fR option causes a help message to be displayed on standard output.
-
-A file name provides a crontab file name that will be installed.
+.TP
+\fB-h\fR, \fB--help\fR
+.br
+Displays help message.
+.TP
+\fB-u\fR \fIUSR\fR
+.br
+Specifies the name of the user whose crontab is to be used (when listing) or
+modified (when editing). If this option is not given, crontab examines "your"
+crontab, i.e., the crontab of the person executing the command. Note that su(8)
+can confuse crontab and that if you are running inside of su(8) you should
+always use the
+.B -u
+option for safety's sake.
+.TP
+.B -e
+Edit the current crontab using the editor specified by the VISUAL or EDITOR
+variables. If neither of the environment variables is defined, then the default
+editor
+.I /usr/bin/editor
+is used. Upon exit from the editor, the changes will be saved.
+.TP
+.B -l
+Display the current crontab on standard output.
+.TP
+.B -r
+Remove the current crontab.
+.TP
+.B -i
+Prompt the user for a 'y/n' response before removing the crontab, if
+.B -r
+option is given.
+.TP
+.I file
+.br
+A crontab file name to replace the current crontab.
 .SH SEE ALSO
 megacrond(8)
 .SH BUGS
