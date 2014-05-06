@@ -1,9 +1,14 @@
 import sys
 from datetime import datetime
+import argparse
 
 from megacron import api
 
-import argparse
+class MyParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
 
 
 def get_worker_status():
@@ -57,7 +62,7 @@ def get_num_schedules():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Provides stats for MegaCron')
+    parser = MyParser(description='Provides stats for MegaCron')
     parser.add_argument("-ws", "--workerstatus", help="show worker status",
                         action="store_true")
     parser.add_argument("-nj", "--numjobs", help="show number of jobs",
