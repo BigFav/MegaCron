@@ -1,0 +1,101 @@
+.\" Manpage for megacron
+.\" Let us know about suggestions or errors at https://github.com/BigFav/MegaCron
+.TH man 8 "06 May 2014" "1.0" "megacron man page"
+.SH NAME
+megacron \- a distributed cron system
+.SH SYNOPSIS
+.B megacrond
+
+.B megacrontab 
+[\-u] [\-i] [\-e] [\-r] [\-l] 
+.IR FILE
+
+.B megacron-status 
+[\-ws] [\-nj] [\-ns] [\-xs] [\-u] [\-a]
+.SH DESCRIPTION
+megacron is a distributed replacement for cron. 
+It is intended for situations where a high number of jobs need to be executed in a short amount of time, to the point where it is necessary to rely on multiple servers for execution.
+
+Since megacron automatically executes jobs, both megacrond and megacrontab must be ran with privilege. 
+
+megacrond lauches the megacron daemon. 
+It must be ran before the system will automatically begin running tasks.
+
+megacrontab allows you to write a crontab, using standard syntax. 
+While a cursory guide to cron syntax follows, we advise you follow the documentation for vanilla cron and crontab, which is quite extensive.
+
+A cron table is a plain text file in tabular form. 
+Each line has six components delimited by spaces; in order, 
+.B MINUTES, HOURS, DAY OF MONTH, MONTH, DAY OF WEEK, COMMAND. 
+The first five components correspond to what times the sixth will run. 
+In the time components, there are four special characters to know.
+A 
+.IR hyphen (-) 
+denotes a range. An 
+.IR asterisk (*) 
+denotes a wild card. 
+It is equivalent to the full range of a given field; for instance, a * in the 
+.B MINUTES 
+field is equivalent to 0-59. 
+A
+.IR slash (/)
+gives the incrementer of a range; for example, 0-6/2 will cover 0,2,4,6. 
+And the
+.IR comma (,) 
+is used to list out multiple values.
+
+The following crontab line runs megacron\-status \-a on the 15th and 45th minute every other hour each Monday in the month of March:
+
+.B 15,45 */2 * 3 2 megacron\-status \-a
+
+The final piece of the megacron suite is megacron\-status, which does not require root privilege. 
+It is used for outputting various useful details about the system.
+.SH OPTIONS
+.B megacrond 
+does not have arguments.
+
+.B megacrontab
+.TP
+.B \-u 
+Specifies which user's crontab to use. 
+Will use current user's crontab if not specified.
+.TP
+.B \-i
+Modifies the \-r option so that it prompts for a y/n response before deleting the crontab.
+.TP
+.B \-e
+Edit the current crontab using the editor specified by the VISUAL or EDITOR variables.
+Upon exit, changes are saved.
+.TP
+.B \-r
+Removes the current crontab.
+.TP
+.B \-l
+Displays the current crontab entries to standard output.
+.TP
+.IR FILE
+File to overwrite current crontab.
+.TP
+.B megacron-status
+.TP
+.B \-ws
+Shows the current worker status.
+.TP 
+.B \-nj
+Shows the number of jobs in the queue.
+.TP
+.B \-ns
+Shows the number of schedules created.
+.TP
+.B \-xs
+Shows the time and date of the next scheduled job.
+.TP
+.B \-u
+Shows the number of users with jobs scheduled.
+.TP
+.B \-a
+Displays all status options as listed above.
+.SH SEE ALSO
+cron(8), crontab(1), crontab(5), nfs(5)
+.SH AUTHOR
+Megacron Team (https://github.com/BigFav/MegaCron), Wikimedia Foundation
