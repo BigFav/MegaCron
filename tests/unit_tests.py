@@ -26,10 +26,11 @@ SOME = 4
 MANY = 10
 MORE_THAN_MANY = 12
 
-class TestApiFunctions(unittest.TestCase):        
+
+class TestApiFunctions(unittest.TestCase):
 
     def tearDown(self):
-       cleanup()
+        cleanup()
 
 #### TEST GET_JOBS() ####
     def test_get_jobs_empty_jobs(self):
@@ -121,7 +122,7 @@ class TestApiFunctions(unittest.TestCase):
 
     def test_get_jobs_for_user_some_users_empty_jobs(self):
         jobs_list_user4 = api.get_jobs_for_user(user4)
-        # Verify that the jobs_list for user4 is empty       
+        # Verify that the jobs_list for user4 is empty
         self.assertFalse(len(jobs_list_user4))
         num_of_jobs_user1 = ONE
         # Add one job to the tabfile user1
@@ -139,11 +140,10 @@ class TestApiFunctions(unittest.TestCase):
         test_jobs = create_test_tab(num_of_jobs, user1)
         api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
-        db_creation_time \
-        = datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
+        db_creation_time = datetime.fromtimestamp(
+                           os.stat(api.FILE_NAME).st_mtime)
         # We are comparing different orders of time, so offset by one second
-        new_time = \
-        db_creation_time.replace(second=db_creation_time.second + 1)
+        new_time = db_creation_time.replace(second=db_creation_time.second + 1)
         checkpoint2 = datetime.now()
         checkpoint2 = checkpoint2.replace(second=checkpoint2.second + 1)
         # Verify that the jobs have been set just now
@@ -156,11 +156,10 @@ class TestApiFunctions(unittest.TestCase):
         test_jobs = create_test_tab(num_of_jobs, user1)
         api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
-        db_creation_time = \
-        datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
+        db_creation_time = datetime.fromtimestamp(
+                           os.stat(api.FILE_NAME).st_mtime)
         # We are comparing different orders of time, so offset by one second
-        new_time = \
-        db_creation_time.replace(second=db_creation_time.second + 1)
+        new_time = db_creation_time.replace(second=db_creation_time.second + 1)
         # Verify that the jobs have been set just now
         checkpoint2 = datetime.now()
         checkpoint2 = checkpoint2.replace(second=checkpoint2.second + 1)
@@ -174,11 +173,10 @@ class TestApiFunctions(unittest.TestCase):
         test_jobs = create_test_tab(num_of_jobs, user1)
         api.set_jobs(test_jobs, user1)
         # Query metadata for the database file creation time
-        db_creation_time = \
-        datetime.fromtimestamp(os.stat(api.FILE_NAME).st_mtime)
+        db_creation_time = datetime.fromtimestamp(
+                           os.stat(api.FILE_NAME).st_mtime)
         # We are comparing different orders of time, so offset by one second
-        new_time = \
-        db_creation_time.replace(second=db_creation_time.second + 1)
+        new_time = db_creation_time.replace(second=db_creation_time.second + 1)
         # Verify that the jobs have been set just now
         checkpoint2 = datetime.now()
         checkpoint2 = checkpoint2.replace(second=checkpoint2.second + 1)
@@ -198,7 +196,7 @@ class TestApiFunctions(unittest.TestCase):
         checkpoint2 = datetime.now()
         # Verify that the job's last time run was updated correctly
         self.assertTrue(job.last_time_run > checkpoint1 and
-        job.last_time_run < checkpoint2)
+                        job.last_time_run < checkpoint2)
 
     def test_set_job_time_random_job_from_many(self):
         checkpoint1 = datetime.now()
@@ -212,7 +210,7 @@ class TestApiFunctions(unittest.TestCase):
         checkpoint2 = datetime.now()
         # Verify that the job's last time run was updated correctly
         self.assertTrue(job.last_time_run > checkpoint1 and
-        job.last_time_run < checkpoint2)
+                        job.last_time_run < checkpoint2)
 
 #### TEST CREATE_WORKER() ####
     def test_create_worker_one_worker(self):
@@ -224,7 +222,7 @@ class TestApiFunctions(unittest.TestCase):
         current = 1
         # Verify that the worker has been created just now
         self.assertTrue(test_workers[0].heartbeat > checkpoint1 and
-        test_workers[0].heartbeat < checkpoint2)
+                        test_workers[0].heartbeat < checkpoint2)
         current += 1
 
     def test_create_worker_many_workers(self):
@@ -232,81 +230,81 @@ class TestApiFunctions(unittest.TestCase):
         num_of_workers = MANY
         test_workers = []
         for job in range(num_of_workers):
-        	# Create many workers and add them to a list for bookkeeping
+            # Create many workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
         checkpoint2 = datetime.now()
         current = 1
         for worker in test_workers:
-        	# Verify that the workers have been created just now
+            # Verify that the workers have been created just now
             self.assertTrue(worker.heartbeat > checkpoint1 and
-            worker.heartbeat < checkpoint2)
+                            worker.heartbeat < checkpoint2)
             current += 1
 
 #### TEST GET_WORKERS() ####
     def test_get_workers_empty_workers(self):
-    	num_of_workers = ZERO
-    	workers_list = api.get_workers()
-    	# Verify that workers list is empty
-    	self.assertFalse(len(workers_list))
+        num_of_workers = ZERO
+        workers_list = api.get_workers()
+        # Verify that workers list is empty
+        self.assertFalse(len(workers_list))
 
     def test_get_workers_one_worker(self):
-    	num_of_workers = ONE
+        num_of_workers = ONE
         test_workers = []
         # Create one worker and add them to a list for bookkeeping
         test_workers.append(api.create_worker())
-    	workers_list = api.get_workers()
+        workers_list = api.get_workers()
         # Verify that the workers list contains exactly one worker
-    	self.assertEqual(len(workers_list), num_of_workers)
-    	# Verify that the information we get is the same as what was set
+        self.assertEqual(len(workers_list), num_of_workers)
+        # Verify that the information we get is the same as what was set
         check_worker_fields(self, workers_list, test_workers)
 
     def test_get_workers_many_workers(self):
-    	num_of_workers = MANY
+        num_of_workers = MANY
         test_workers = []
         for job in range(num_of_workers):
-        	# Create workers and add them to a list for bookkeeping
+            # Create workers and add them to a list for bookkeeping
             test_workers.append(api.create_worker())
-    	workers_list = api.get_workers()
-    	# Verify that the workers list contains the correct number of workers
-    	self.assertEqual(len(workers_list), num_of_workers)
+        workers_list = api.get_workers()
+        # Verify that the workers list contains the correct number of workers
+        self.assertEqual(len(workers_list), num_of_workers)
         check_worker_fields(self, workers_list, test_workers)
 
 #### TEST GET_NEXT_WORKER() ####
     def test_get_next_worker_empty_workers(self):
         # Try to get the next worker from an empty pool
-    	next_worker = api.get_next_worker()
-    	# Verify that the next worker does not exist
-    	self.assertEqual(next_worker, None)
+        next_worker = api.get_next_worker()
+        # Verify that the next worker does not exist
+        self.assertEqual(next_worker, None)
 
     def test_get_next_worker_one_worker(self):
-    	num_of_workers = ONE
-    	test_workers = []
-    	# Create one worker and add it to a list for bookkeeping
-    	test_workers.append(api.create_worker())
+        num_of_workers = ONE
+        test_workers = []
+        # Create one worker and add it to a list for bookkeeping
+        test_workers.append(api.create_worker())
         workers_list = []
-    	workers_list.append(api.get_next_worker())
-    	# Verify that the workers list contains exactly one worker
-    	self.assertEqual(len(workers_list), num_of_workers)
+        workers_list.append(api.get_next_worker())
+        # Verify that the workers list contains exactly one worker
+        self.assertEqual(len(workers_list), num_of_workers)
         # Verify that the information we get is the same as what was set
-    	check_worker_fields(self, workers_list, test_workers)
+        check_worker_fields(self, workers_list, test_workers)
 
     def test_get_next_worker_one_worker_many_requests(self):
-    	num_of_workers = ONE
-    	num_of_requests = MANY
-    	test_workers = []
-    	# Create one worker and it to a list for bookkeeping
-    	test_workers.append(api.create_worker())
+        num_of_workers = ONE
+        num_of_requests = MANY
+        test_workers = []
+        # Create one worker and it to a list for bookkeeping
+        test_workers.append(api.create_worker())
         # Verify that the test workers contains exactly one worker
         self.assertEqual(len(test_workers), num_of_workers)
         workers_list = []
-    	for request in range(num_of_requests):
-    		# Get workers and add them to a list for
-          # comparison with list of test workers
+        for request in range(num_of_requests):
+            # Get workers and add them to a list for
+            # comparison with list of test workers
             workers_list.append(api.get_next_worker())
-	    # Verify that the workers list contains
-	    # as many workers as there were requests
-    	self.assertEqual(len(workers_list), num_of_requests)
-    	# Verify that the information we get is the same as what was set
+        # Verify that the workers list contains
+        # as many workers as there were requests
+        self.assertEqual(len(workers_list), num_of_requests)
+        # Verify that the information we get is the same as what was set
         check_worker_fields(self, workers_list, test_workers)
 
     def test_get_next_worker_many_workers_more_requests(self):
@@ -350,7 +348,7 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEqual(next_worker, None)
 
     def test_destroy_worker_many_workers(self):
-        # Number of workers and floor(requests) + ceiling(requests) are equal 
+        # Number of workers and floor(requests) + ceiling(requests) are equal
         num_of_workers = MANY
         # Automatic flooring care of Python
         num_of_requests = num_of_workers/2
@@ -374,7 +372,7 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEqual(next_worker, None)
 
     def test_destroy_worker_many_workers_random_workers(self):
-        # Number of workers and floor(requests) + ceiling(requests) are equal 
+        # Number of workers and floor(requests) + ceiling(requests) are equal
         num_of_workers = MANY
         # Leave one worker remaining for comparison at the end
         num_of_requests = num_of_workers - 1
@@ -427,7 +425,7 @@ class TestApiFunctions(unittest.TestCase):
         # Verify that the heartbeat has been updated correctly and previous
         # heartbeat was not an unexpected value
         check_heartbeat_value(self, workers_list[0], previous_heartbeats,
-        checkpoint1, checkpoint2, 0)
+                              checkpoint1, checkpoint2, 0)
 
     def test_update_heartbeat_one_worker_many_requests(self):
         num_of_requests = MANY
@@ -446,7 +444,7 @@ class TestApiFunctions(unittest.TestCase):
             # Verify that the heartbeat has been updated correctly and previous
             # heartbeat was not an unexpected value
             check_heartbeat_value(self, workers_list[0], previous_heartbeats,
-            checkpoint1, checkpoint2, 0)
+                                  checkpoint1, checkpoint2, 0)
 
     def test_update_heartbeat_many_workers_many_requests(self):
         num_of_workers = MANY
@@ -469,11 +467,11 @@ class TestApiFunctions(unittest.TestCase):
         current = 0
         for worker in workers_list:
             check_heartbeat_value(self, worker, previous_heartbeats,
-            checkpoint1, checkpoint2, current)
+                                  checkpoint1, checkpoint2, current)
             current += 1
 
     def test_update_heartbeat_many_workers_random_worker(self):
-        # Number of workers and floor(requests) + ceiling(requests) are equal 
+        # Number of workers and floor(requests) + ceiling(requests) are equal
         num_of_workers = MANY
         test_workers = []
         previous_heartbeats = []
@@ -491,8 +489,9 @@ class TestApiFunctions(unittest.TestCase):
         checkpoint2 = datetime.now()
         # Verify that the random worker's heartbeat has been updated correctly
         # and its previous heartbeat was not an unexpected value
-        check_heartbeat_value(self, workers_list[random_worker], 
-        previous_heartbeats, checkpoint1, checkpoint2, random_worker)
+        check_heartbeat_value(self, workers_list[random_worker],
+                              previous_heartbeats, checkpoint1,
+                              checkpoint2, random_worker)
 
 #### TEST ADD_SCHEDULES([Schedule]) ####
     def test_add_schedules_one_job_one_schedule(self):
@@ -507,8 +506,8 @@ class TestApiFunctions(unittest.TestCase):
         test_workers.append(api.create_worker())
         # Create a schedule for the only job
         test_schedules = []
-        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-        test_workers[0]))
+        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                              test_workers[0]))
         api.add_schedules(test_schedules)
         schedules_list = api.get_schedules(test_workers[0])
         # Verify that the schedules list contains exactly one schedule
@@ -527,8 +526,8 @@ class TestApiFunctions(unittest.TestCase):
         # Create many schedules for the only job
         test_schedules = []
         for schedule in range(num_of_schedules):
-            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-            test_workers[0]))
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                                  test_workers[0]))
         api.add_schedules(test_schedules)
         schedules_list = api.get_schedules(test_workers[0])
         # Verify that the schedules list contains exactly one schedule
@@ -547,8 +546,8 @@ class TestApiFunctions(unittest.TestCase):
         # Create many schedules for the only job
         test_schedules = []
         for schedule in range(num_of_schedules):
-            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-            test_workers[0]))
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                                  test_workers[0]))
         api.add_schedules(test_schedules)
         schedules_list = api.get_schedules(test_workers[0])
         # Verify that the schedules list contains exactly one schedule
@@ -567,13 +566,12 @@ class TestApiFunctions(unittest.TestCase):
         test_workers.append(api.create_worker())
         # Create a schedule for the only job
         test_schedules = []
-        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-        test_workers[0]))
+        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                              test_workers[0]))
         api.add_schedules(test_schedules)
         schedules_list = api.get_schedules(test_workers[0])
         # Verify that the information we get matches what was set
         check_schedule_fields(self, schedules_list, test_schedules)
-
 
     def test_get_schedules_one_worker_many_schedules(self):
         num_of_jobs = MANY
@@ -587,8 +585,8 @@ class TestApiFunctions(unittest.TestCase):
         # Create a schedule for the only job
         test_schedules = []
         for job in range(num_of_jobs):
-            test_schedules.append(api.Schedule(datetime.now(), test_jobs[job], 
-            test_workers[0]))
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[job],
+                                  test_workers[0]))
         api.add_schedules(test_schedules)
         schedules_list = api.get_schedules(test_workers[0])
         # Verify that the information we get matches what was set
@@ -608,8 +606,8 @@ class TestApiFunctions(unittest.TestCase):
         # Create a schedule belonging to each worker containing the only job
         test_schedules = []
         for worker in test_workers:
-            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-            worker))
+            test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                                  worker))
         api.add_schedules(test_schedules)
         # Aggregate each worker's schedules into a single list for comparison
         # with test schedules
@@ -618,8 +616,8 @@ class TestApiFunctions(unittest.TestCase):
             schedules_list = api.get_schedules(worker)
             schedules_for_workers.extend(schedules_list)
         # Verify that the information we get matches what was set
-        check_schedule_fields(self, schedules_for_workers, 
-        test_schedules)
+        check_schedule_fields(self, schedules_for_workers,
+                              test_schedules)
 
     def test_get_schedules_many_workers_many_schedules(self):
         num_of_jobs = MANY
@@ -636,9 +634,9 @@ class TestApiFunctions(unittest.TestCase):
         # Create a schedule belonging to each worker representing the only job
         test_schedules = []
         for worker in test_workers:
-        	for job in jobs_list:
-                    test_schedules.append(api.Schedule(datetime.now(), 
-                    job, worker))
+            for job in jobs_list:
+                test_schedules.append(api.Schedule(datetime.now(),
+                                      job, worker))
         api.add_schedules(test_schedules)
         # Aggregate each worker's schedules into a single list for comparison
         # with test schedules
@@ -647,8 +645,8 @@ class TestApiFunctions(unittest.TestCase):
             schedules_list = api.get_schedules(worker)
             schedules_for_workers.extend(schedules_list)
         # Verify that the information we get matches what was set
-        check_schedule_fields(self, schedules_for_workers, 
-        test_schedules)
+        check_schedule_fields(self, schedules_for_workers,
+                              test_schedules)
 
 #### TEST DESTORY_WORKER(Worker) ####
     def test_remove_schedule_empty_schedules(self):
@@ -669,8 +667,8 @@ class TestApiFunctions(unittest.TestCase):
         test_workers.append(api.create_worker())
         # Create a schedule for the only job
         test_schedules = []
-        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0], 
-        test_workers[0]))
+        test_schedules.append(api.Schedule(datetime.now(), test_jobs[0],
+                              test_workers[0]))
         api.add_schedules(test_schedules)
         # Kill the only schedule in the list
         api.remove_schedule(test_schedules[0])
@@ -679,11 +677,11 @@ class TestApiFunctions(unittest.TestCase):
         self.assertFalse(len(schedules_list))
 
     def test_remove_schedule_many_schedules(self):
-        # Number of jobs and floor(requests) + ceiling(requests) are equal 
+        # Number of jobs and floor(requests) + ceiling(requests) are equal
         num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         # Automatic flooring care of Python
-        num_of_requests = num_of_jobs/2 
+        num_of_requests = num_of_jobs / 2
         # Create a crontab with many jobs
         test_jobs = create_test_tab(num_of_jobs, user1)
         api.set_jobs(test_jobs, user1)
@@ -695,7 +693,7 @@ class TestApiFunctions(unittest.TestCase):
         test_schedules = []
         for schedule in range(num_of_schedules):
             test_schedules.append(api.Schedule(datetime.now(),
-            test_jobs[schedule], test_workers[0]))
+                                  test_jobs[schedule], test_workers[0]))
         api.add_schedules(test_schedules)
         # Kill the floor of half of the workers in the list
         for request in range(num_of_requests):
@@ -712,7 +710,7 @@ class TestApiFunctions(unittest.TestCase):
         self.assertFalse(len(schedules_list))
 
     def test_remove_schedules_many_schedules_random_schedules(self):
-        # Number of jobs and floor(requests) + ceiling(requests) are equal 
+        # Number of jobs and floor(requests) + ceiling(requests) are equal
         num_of_jobs = MANY
         num_of_schedules = num_of_jobs
         # Leave one schedule remaining for comparison at the end
@@ -727,7 +725,7 @@ class TestApiFunctions(unittest.TestCase):
         test_schedules = []
         for schedule in range(num_of_schedules):
             test_schedules.append(api.Schedule(datetime.now(),
-            test_jobs[schedule], test_workers[0]))
+                                  test_jobs[schedule], test_workers[0]))
         api.add_schedules(test_schedules)
         # Kill number of requests random schedules in the list
         for request in range(num_of_requests):
@@ -776,7 +774,7 @@ class TestApiFunctions(unittest.TestCase):
         self.assertEquals(test_crontab, False)
         api.set_crontab(crontab, user1)
         test_crontab = api.get_crontab(user1)
-        self.assertEqual(crontab, test_crontab)        
+        self.assertEqual(crontab, test_crontab)
 
 #### TEST GET_CRONTAB(User) ####
     def test_get_crontab_missing_crontab(self):

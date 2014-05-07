@@ -12,6 +12,7 @@ api.FILE_NAME = './testdb.p'
 
 uid = os.getuid()
 
+
 def cleanup():
     # Kill the temporary tab file
     if(os.access(TAB_FILE, os.F_OK)):
@@ -19,6 +20,7 @@ def cleanup():
     # Kill the temporary database
     if(os.access(api.FILE_NAME, os.F_OK)):
         os.remove(api.FILE_NAME)
+
 
 def check_job_fields(self, jobs_list, test_jobs, uid):
     current = 0
@@ -30,6 +32,7 @@ def check_job_fields(self, jobs_list, test_jobs, uid):
         self.assertEqual(job._id, test_jobs[current]._id)
         current += 1
 
+
 def check_worker_fields(self, workers_list, test_workers):
     current = 0
     for worker in test_workers:
@@ -37,21 +40,25 @@ def check_worker_fields(self, workers_list, test_workers):
         self.assertEqual(worker._id, workers_list[current]._id)
         current += 1
 
+
 def check_schedule_fields(self, schedules_list, test_schedules):
     current = 0
     for schedule in test_schedules:
-        self.assertEqual(schedule.time_to_run, schedules_list[current].time_to_run)
+        self.assertEqual(schedule.time_to_run,
+                         schedules_list[current].time_to_run)
         self.assertEqual(schedule.job, schedules_list[current].job)
         self.assertEqual(schedule.worker, schedules_list[current].worker)
         self.assertEqual(schedule._id, schedules_list[current]._id)
         current += 1
 
-def check_heartbeat_value(self, worker, previous_heartbeats, checkpoint1,
-checkpoint2, current):
-        self.assertTrue(worker.heartbeat > checkpoint1
-        and worker.heartbeat < checkpoint2 
-        and worker.heartbeat > previous_heartbeats[current]
-        and previous_heartbeats[current] < checkpoint1)
+
+def check_heartbeat_value(self, worker, previous_heartbeats,
+                          checkpoint1, checkpoint2, current1):
+    self.assertTrue(worker.heartbeat > checkpoint1 and
+                    worker.heartbeat < checkpoint2 and
+                    worker.heartbeat > previous_heartbeats[current] and
+                    previous_heartbeats[current] < checkpoint1)
+
 
 def create_test_tab(num_of_jobs, uid):
     # Will contain parsed auto-generated crontab entries
@@ -60,10 +67,10 @@ def create_test_tab(num_of_jobs, uid):
     while job_num <= num_of_jobs:
         cron_strings.setdefault(job_num, [])
         create_test_intervals(cron_strings[job_num])
-        cron_strings[job_num].append(create_test_commands(job_num, 
-        cron_strings[job_num]))
+        cron_strings[job_num].append(create_test_commands(job_num,
+                                     cron_strings[job_num]))
         job_num += 1
-    with open(TAB_FILE,'w') as tab:
+    with open(TAB_FILE, 'w') as tab:
         for line in cron_strings.iterkeys():
             rand = random.randrange(100)
             # Approximately 30% chance that we will include a comment
@@ -88,20 +95,22 @@ def create_test_tab(num_of_jobs, uid):
                 test_jobs.append(api.Job(interval, cmd, uid, datetime.now()))
     return test_jobs
 
+
 def create_test_commands(job_num, cron_job):
     job_string = str(job_num)
-    command_strings = [' echo test ' + job_string + '\n', ' echo test ' \
-    + job_string + ' > ' + job_string + '.txt \n']
+    command_strings = [' echo test ' + job_string + '\n', ' echo test ' +
+                       job_string + ' > ' + job_string + '.txt \n']
     return (command_strings[random.randrange(len(command_strings))])
 
+
 def create_test_intervals(cron_job):
-    # Will contain random interval field values to be assembled 
+    # Will contain random interval field values to be assembled
     fields = []
-    minute = random.randrange(0,59)
-    hour = random.randrange(0,23)
-    day_of_month = random.randrange(1,31)
-    month = random.randrange(1,12)
-    day_of_week = random.randrange(0,6)
+    minute = random.randrange(0, 59)
+    hour = random.randrange(0, 23)
+    day_of_month = random.randrange(1, 31)
+    month = random.randrange(1, 12)
+    day_of_week = random.randrange(0, 6)
     interval_fields = [minute, hour, day_of_month, month, day_of_week]
     for field in interval_fields:
         # A temporary variable

@@ -95,7 +95,7 @@ def get_crontab(opts, valid_crontab, tb_file):
             os.system("%s %s" % (editor, tb_file))
         else:
             try:
-                subprocess.check_call(["vi", str(tb_file)])
+                subprocess.check_call(["/usr/bin/editor", str(tb_file)])
             except OSError:
                 if opts.file is False:
                     os.unlink(tb_file)
