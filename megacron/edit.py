@@ -127,10 +127,15 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                     # Ensure the crontab line is valid
                     croniter(interval)
                     if not cmd:
-                        raise ValueError("No command.")
+                        raise ValueError("Missing command.")
                 except (KeyError, ValueError) as e:
                     if isinstance(e, KeyError):
-                        e = "Bad interval syntax, %s " % e
+                        e = "Bad time interval syntax, %s " % e
+                    else:
+                        # Replace croniter's typo-riddled error msg
+                        if str(e) != "Missing command.":
+                            e = ("Less than 5 fields separated by white space "
+                                 "(requires 6).")
                     e_str += "Error in line %i: %s\n" % (i + 1, e)
                     continue
 
