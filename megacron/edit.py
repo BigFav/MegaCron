@@ -131,11 +131,10 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                 except (KeyError, ValueError) as e:
                     if isinstance(e, KeyError):
                         e = "Bad time interval syntax, %s " % e
-                    else:
-                        # Replace croniter's typo-riddled error msg
-                        if str(e) != "Missing command.":
-                            e = ("Less than 5 fields separated by white space "
-                                 "(requires 6).")
+                    # Replace croniter's typo-riddled error msg
+                    elif str(e) != "Missing command.":
+                        e = ("Less than 5 fields separated by white space "
+                             "(requires 6).")
                     e_str += "Error in line %i: %s\n" % (i + 1, e)
                     continue
 
