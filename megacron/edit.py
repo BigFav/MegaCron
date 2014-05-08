@@ -10,7 +10,7 @@ from croniter import croniter
 from megacron import api
 
 
-_input = raw_input if sys.version_info < (3, 0) else input
+_input = raw_input if sys.version_info < (3,) else input
 
 
 def _print_usage(self, file=None):
@@ -40,9 +40,8 @@ def parse_args():
                         help="User of whose crontab to use. Will use current "
                              "user's crontab, if no user is specified.")
     parser.add_argument('-i', action="store_true", dest="rm_prompt",
-                        help="The -i option modifies the -r option to prompt "
-                             "the user for a 'y/n' response before removing "
-                             "the crontab.")
+                        help="Modifies the -r option to prompt the user for a "
+                             "'y/n' response before removing the crontab.")
 
     # Cannot have multiple commands at once
     commands = parser.add_mutually_exclusive_group()
@@ -90,9 +89,9 @@ def get_crontab(opts, valid_crontab, tb_file):
         visual = os.getenv('VISUAL')
         editor = os.getenv('EDITOR')
         if visual:
-            os.system("%s %s" % (visual, tb_file))
+            subprocess.call([visual, str(tb_file)])
         elif editor:
-            os.system("%s %s" % (editor, tb_file))
+            subprocess.call([editor, str(tb_file)])
         else:
             try:
                 subprocess.check_call(["/usr/bin/editor", str(tb_file)])
@@ -111,11 +110,12 @@ def get_crontab(opts, valid_crontab, tb_file):
 
 
 def process_edits(uid, tb_file, using_local_file, old_tab):
-    crontab = []
+    e_str = ""
     jobs = []
+    crontab = []
     old_jobs = api.get_jobs_for_user(uid)
     with open(tb_file, 'r') as tab:
-        for line in tab:
+        for i, line in enumerate(tab):
             line = line.strip()
             crontab.append(line)
             # Ignore newlines and full line comments
@@ -127,34 +127,45 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                     # Ensure the crontab line is valid
                     croniter(interval)
                     if not cmd:
-                        raise ValueError
-                except (KeyError, ValueError):
-                    # Otherwise prompt user to edit crontab
-                    e_str = ("The crontab you entered has invalid entries, "
-                             "would you like to edit it again? (y/n) ")
-                    while True:
-                        cnt = _input(e_str)
-                        if (cnt == 'n') or (cnt == 'N'):
-                            if using_local_file is False:
-                                os.unlink(tb_file)
-                            sys.exit(1)
-                        elif (cnt == 'y') or (cnt == 'Y'):
-                            return False
-                        e_str = "Please enter y or n: "
+                        raise ValueError("Missing command.")
+                except (KeyError, ValueError) as e:
+                    if isinstance(e, KeyError):
+                        e = "Bad time interval syntax, %s " % e
+                    # Replace croniter's typo-riddled error msg
+                    elif str(e) != "Missing command.":
+                        e = ("Less than 5 fields separated by white space "
+                             "(requires 6).")
+                    e_str += "Error in line %i: %s\n" % (i + 1, e)
+                    continue
 
-                # Check if job was already there
-                job = None
-                if line in old_tab:
-                    for old_job in old_jobs:
-                        if (old_job.interval == interval and
-                                old_job.command == cmd):
-                            job = old_job
-                            old_jobs.remove(old_job)
-                            break
-                if not job:
-                    old_tab.discard(line)
-                    job = api.Job(interval, cmd, uid, datetime.now())
-                jobs.append(job)
+                if not e_str:
+                    # Check if job was in the old crontab
+                    job = None
+                    if line in old_tab:
+                        for old_job in old_jobs:
+                            if (old_job.interval == interval and
+                                    old_job.command == cmd):
+                                job = old_job
+                                old_jobs.remove(old_job)
+                                break
+                    if not job:
+                        old_tab.discard(line)
+                        job = api.Job(interval, cmd, uid, datetime.now())
+                    jobs.append(job)
+
+    if e_str:
+        # Prompt user to edit crontab on error
+        e_str += ("The crontab you entered has invalid entries, "
+                  "would you like to edit it again? (y/n) ")
+        while True:
+            cnt = _input(e_str)
+            if (cnt == 'n') or (cnt == 'N'):
+                if using_local_file is False:
+                    os.unlink(tb_file)
+                sys.exit(1)
+            elif (cnt == 'y') or (cnt == 'Y'):
+                return False
+            e_str = "Please enter y or n: "
 
     if using_local_file is False:
         os.unlink(tb_file)
