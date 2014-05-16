@@ -1,5 +1,9 @@
 .\" Manpage for megacrontab.
 .\" Contact mpelletier@wikimedia.org to correct errors or typos.
+.de URL
+\\$2 \(laURL:\\$1\(ra\\$3
+..
+.if \n[.g] .mso www.tmac
 .TH MEGACRONTAB 1 "16 May 2014" "0.4.1" "Wikimedia"
 .SH NAME
 megacrontab \- maintain crontab files for individual users
@@ -12,7 +16,10 @@ megacrontab \- maintain crontab files for individual users
 .SH DESCRIPTION
 .B megacrontab
 is the program used to install, deinstall or list the tables used to drive the
-megacrond(8) daemon.
+megacrond(8) daemon. Each user's crontab is stored in serialized form in a
+file whose location and name are defined in
+.I /etc/megacron.conf
+as the shared_filesystem_path variable.
 
 If the
 .I /etc/cron.allow
@@ -25,8 +32,7 @@ file does exist, then you must not be listed in the
 .I /etc/cron.deny
 file in order to use this command.
 
-If neither file exists, all users are
-allowed to create a crontab.
+If neither file exists, all users are allowed to create a crontab.
 
 If both files exist then
 .I /etc/cron.allow
@@ -100,13 +106,14 @@ megacron(8), megacrond(8), megacron-status(1), crontab(1)
 .SH BUGS
 .B megacrontab
 is part of the open source project Megacron. Report any bugs to the project's
-GitHub page
+GitHub 
 .br
-<https://github.com/BigFav/MegaCron>.
+.URL "https://github.com/BigFav/MegaCron" "page" "."
 .SH HISTORY
 .B megacrontab
 is based on crontab(1).
 .SH AUTHOR
 Favian Contreras <fnc4@cornell.edu> is the original creator of this manual
-page. The current project leader is Marc-Andre Pelletier
+page. The project leader is Marc-Andre Pelletier
+.br
 <mpelletier@wikimedia.org>.
