@@ -66,6 +66,29 @@ def parse_args():
     return opts
 
 
+def check_permissions(opts_usr, usr_euid):
+    # Check if user is allowed to use megacrontab
+    if os.path.isfile("/etc/cron.allow"):
+        with open("/etc/cron.allow", 'r') as allowed:
+            if not opts_usr[1] in map(str.strip, allowed):
+                sys.exit("Access denied. The user %s is not in "
+                         "/etc/cron.allow, thus is not authorized to use "
+                         "megacrontab.\nSee megacrontab(1) for more "
+                         "information." % opts_usr[1])
+    # Otherwise check if user is not allowed to use megacrontab
+    elif os.path.isfile("/etc/cron.deny"):
+        with open("/etc/cron.deny", 'r') as not_allowed:
+            if opts_usr[1] in map(str.strip, not_allowed):
+                sys.exit("Access denied. The user %s is in /etc/cron.deny, "
+                         "thus is not authorized to use megacrontab.\nSee "
+                         "megacrontab(1) for more information." % opts_usr[1])
+
+    # Check if current user has access to the current crontab
+    if (usr_euid != 0) and (opts_usr[0] != usr_euid):
+        sys.exit("Access denied. You do not have permission to edit %s's "
+                 "crontab." % opts_usr[1])
+
+
 def get_crontab(opts, valid_crontab, tb_file):
     old_cron = api.get_crontab(opts.usr[0])
     if (opts.file is False) or (valid_crontab is False):
@@ -82,7 +105,7 @@ def get_crontab(opts, valid_crontab, tb_file):
             # Write remote crontab to tempfile if it hasn't been written
             with tempfile.NamedTemporaryFile('w', delete=False) as temp:
                 if old_cron:
-                    temp.write(old_cron)
+                    temp.write(old_cron + '\n')
                 tb_file = temp.name
 
         # Open the crontab in editor
@@ -186,12 +209,10 @@ def main():
         try:
             opts.usr = (pwd.getpwnam(opts.usr).pw_uid, opts.usr)
         except KeyError:
-            sys.exit("User '%s' does not exist." % opts.usr)
+            sys.exit("User `%s' does not exist." % opts.usr)
 
         # Verify permissions for selected crontab
-        if (usr_euid != 0) and (opts.usr[0] != usr_euid):
-            sys.exit("Access denied. You do not have permission to edit %s's "
-                     "crontab." % opts.usr[1])
+        check_permissions(opts.usr, usr_euid)
     # If no user is specified, set to current user (euid or uid?)
     else:
         opts.usr = (usr_euid, pwd.getpwuid(usr_euid).pw_name)
