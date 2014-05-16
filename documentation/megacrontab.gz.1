@@ -14,13 +14,14 @@ megacrontab \- maintain crontab files for individual users
 [\fB-i\fR]
 {\fB-e\fR | \fB-l\fR | \fB-r\fR | \fIfile\fR}
 .SH DESCRIPTION
+.PP
 .B megacrontab
 is the program used to install, deinstall or list the tables used to drive the
 megacrond(8) daemon. Each user's crontab is stored in serialized form in a
 file whose location and name are defined in
 .I /etc/megacron.conf
 as the shared_filesystem_path variable.
-
+.PP
 If the
 .I /etc/cron.allow
 file exists, then you must be listed therein in order to be allowed to use this
@@ -31,9 +32,9 @@ file does not exist but the
 file does exist, then you must not be listed in the
 .I /etc/cron.deny
 file in order to use this command.
-
+.PP
 If neither file exists, all users are allowed to create a crontab.
-
+.PP
 If both files exist then
 .I /etc/cron.allow
 takes precedence. This means that
@@ -81,7 +82,7 @@ option is given.
 A crontab file name to replace the current crontab.
 .SH DIAGNOSTICS
 A usage message appears if ran with a bad command line.
-
+.PP
 In addition, a error message appears for each bad CRON expression in the
 current crontab when attempting to install it.
 .SH ENVIRONMENT VARIABLES
@@ -104,7 +105,7 @@ editor, if VISUAL is not set.
 .br
 /etc/megacron.conf
 .SH SEE ALSO
-megacron(8), megacrond(8), megacron-status(1), crontab(1)
+megacron(8), megacrond(8), megacron-status(1), crontab(1), crontab(5)
 .SH BUGS
 .B megacrontab
 is part of the open source project Megacron. Report any bugs to the project's
