@@ -161,12 +161,14 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                 else:
                     interval = ' '.join(split[:5])
                     cmd = ' '.join(split[5:])
+
                 # Check for first un-escaped % in the command
                 index = cmd.find('%')
                 while (index != -1) and (cmd[index-1] == '\\'):
                     index = cmd.find('%', index + 1)
                 if index != -1:
                     cmd = cmd[:index] + '<<<' + cmd[index+1:]
+
                 # Ensure the crontab line is valid
                 try:
                     croniter(interval)
