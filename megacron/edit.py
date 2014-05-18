@@ -5,6 +5,7 @@ import sys
 import subprocess
 import tempfile
 from datetime import datetime
+from re import sub
 
 from croniter import croniter
 from megacron import api
@@ -119,7 +120,7 @@ def get_crontab(opts, valid_crontab, tb_file):
             try:
                 subprocess.call([editor, str(tb_file)])
             except OSError:
-                print(editor + " not found!\n")
+                print(editor + " not found!")
             else:
                 editor_exist = True
                 break
@@ -146,11 +147,39 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
         for i, line in enumerate(tab):
             line = line.strip()
             crontab.append(line)
-            # Ignore newlines and full line comments
+            # Ignore newlines and comments
             if line and (line[0] != '#'):
                 split = line.split()
+                # Check if setting variable
+                if ('=' in split[0]) or ('=' in split[1]):
+                    e_str = ("Error in line %i: Variable assignment is not "
+                             "supported currently\n" % (i + 1))
+                    continue
+                    """
+                    split = line.partition('=')
+                    # Check if var name is zero or multiple words
+                    var_names = len(split[0].split())
+                    if var_names != 1:
+                        if var_names:
+                            e_str += ("Error in line %i: Bad variable "
+                                      "assignment syntax; multiple variable "
+                                      "names given\n" % (i + 1))
+                        else:
+                            e_str += ("Error in line %i: Bad variable "
+                                      "assignment syntax; no variable name "
+                                      "given\n" % (i + 1))
+                        continue
+                    else:
+                        if split[2][0] == ' ':
+                            split[2] = split[2][1:]
+                        # Do something with var name = value
+                        cmd = split[0].strip() + '=' + split[2]
+                        interval = Same as for @reboot? *shrug*
+                    I don't know how I would run it once I have it, so it is
+                    commented out for now.
+                    """
                 # Check for special interval syntax
-                if split[0][0] == '@':
+                elif split[0][0] == '@':
                     try:
                         interval = _special_intervals[split[0]]
                     except KeyError:
@@ -163,31 +192,26 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                     cmd = ' '.join(split[5:])
 
                 # Check for un-escaped %s in command
-                indices = []
                 index = cmd.find('%')
-                while index != -1:
-                    if cmd[index-1] != '\\':
-                        indices.append(index)
+                while (index != -1) and (cmd[index-1] == '\\'):
                     index = cmd.find('%', index + 1)
-                if indices:
-                    cmd = list(cmd)
-                    fst = indices.pop(0)
-                    for index in indices:
-                        cmd[index] = '\n'
-                    cmd = ''.join(cmd[:fst]) + '<<<\n' + ''.join(cmd[fst+1:])
+                if index != -1:
+                    cmd = cmd[:index] + '<<<\n' + sub(r"((?<!\\))%", r"\1\n",
+                                                      cmd[index+1:])
 
                 # Ensure the crontab line is valid
                 try:
                     croniter(interval)
                     if not cmd:
-                        raise ValueError("Missing command.")
+                        raise ValueError("Missing command")
                 except (KeyError, ValueError) as e:
                     if isinstance(e, KeyError):
                         e = "Bad time interval syntax, %s " % e
                     # Replace croniter's typo-riddled error msg
-                    elif str(e) != "Missing command.":
-                        e = ("Less than 5 fields separated by white space "
-                             "(requires 6).")
+                    elif str(e) == ("Exactly 5 or 6 columns has to be "
+                                    "specified for iteratorexpression."):
+                        e = ("Less than 5 fields separated by white space in "
+                             "the time interval (requires 5 or 6)")
                     e_str += "Error in line %i: %s\n" % (i + 1, e)
                 else:
                     if not e_str:
