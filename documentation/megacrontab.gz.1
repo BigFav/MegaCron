@@ -4,7 +4,7 @@
 \\$2 \(laURL:\\$1\(ra\\$3
 ..
 .if \n[.g] .mso www.tmac
-.TH MEGACRONTAB 1 "16 May 2014" "0.4.1" "Wikimedia"
+.TH MEGACRONTAB 1 "18 May 2014" "0.4.1" "Wikimedia"
 .SH NAME
 megacrontab \- maintain crontab files for individual users
 .SH SYNOPSIS
@@ -20,7 +20,9 @@ is the program used to install, deinstall or list the tables used to drive the
 megacrond(8) daemon. Each user's crontab is stored in serialized form in a
 file whose location and name are defined in
 .I /etc/megacron.conf
-as the shared_filesystem_path variable.
+as the
+.I shared_filesystem_path
+variable.
 .PP
 If the
 .I /etc/cron.allow
@@ -42,6 +44,8 @@ takes precedence. This means that
 is not considered and your user must be listed in
 .I /etc/cron.allow
 in order to be able to use the crontab.
+.PP
+These files need to be accessible for all users on the NFS.
 .SH OPTIONS
 .TP
 \fB-h\fR, \fB--help\fR
@@ -105,7 +109,7 @@ editor, if VISUAL is not set.
 .br
 /etc/megacron.conf
 .SH SEE ALSO
-megacron(8), megacrond(8), megacron-status(1), crontab(1), crontab(5)
+megacrontab(5), megacron(8), megacrond(8), megacron-status(1)
 .SH BUGS
 .B megacrontab
 is part of the open source project Megacron. Report any bugs to the project's
@@ -114,7 +118,7 @@ GitHub
 .URL "https://github.com/BigFav/MegaCron" "page" "."
 .SH HISTORY
 .B megacrontab
-is based on crontab(1).
+is based on crontab(1) and crontab(5).
 .SH AUTHOR
 Favian Contreras <fnc4@cornell.edu> is the original creator of this manual
 page. The project leader is Marc-Andre Pelletier

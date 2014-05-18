@@ -196,7 +196,7 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                 while (index != -1) and (cmd[index-1] == '\\'):
                     index = cmd.find('%', index + 1)
                 if index != -1:
-                    cmd = cmd[:index] + '<<<\n' + sub(r"((?<!\\))%", r"\1\n",
+                    cmd = cmd[:index] + "<<<\n" + sub(r"((?<!\\))%", r"\1\n",
                                                       cmd[index+1:])
 
                 # Ensure the crontab line is valid
