@@ -162,12 +162,19 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                     interval = ' '.join(split[:5])
                     cmd = ' '.join(split[5:])
 
-                # Check for first un-escaped % in the command
+                # Check for un-escaped %s in command
+                indices = []
                 index = cmd.find('%')
-                while (index != -1) and (cmd[index-1] == '\\'):
+                while index != -1:
+                    if cmd[index-1] != '\\':
+                        indices.append(index)
                     index = cmd.find('%', index + 1)
-                if index != -1:
-                    cmd = cmd[:index] + '<<<' + cmd[index+1:]
+                if indices:
+                    cmd = list(cmd)
+                    fst = indices.pop(0)
+                    for index in indices:
+                        cmd[index] = '\n'
+                    cmd = ''.join(cmd[:fst]) + '<<<\n' + ''.join(cmd[fst+1:])
 
                 # Ensure the crontab line is valid
                 try:
