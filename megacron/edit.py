@@ -118,9 +118,11 @@ def get_crontab(opts, valid_crontab, tb_file):
         editors = [os.getenv('VISUAL'), os.getenv('EDITOR'), "/usr/bin/editor"]
         for editor in filter(bool, editors):
             try:
-                subprocess.call([editor, str(tb_file)])
+                subprocess.check_call([editor, str(tb_file)])
             except OSError:
                 print(editor + " not found!")
+            except subprocess.CalledProcessError as e:
+                sys.exit(str(e))
             else:
                 editor_exist = True
                 break
@@ -150,36 +152,8 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
             # Ignore newlines and comments
             if line and (line[0] != '#'):
                 split = line.split()
-                # Check if setting variable
-                if ('=' in split[0]) or ('=' in split[1]):
-                    e_str = ("Error in line %i: Variable assignment is not "
-                             "supported currently\n" % (i + 1))
-                    continue
-                    """
-                    split = line.partition('=')
-                    # Check if var name is zero or multiple words
-                    var_names = len(split[0].split())
-                    if var_names != 1:
-                        if var_names:
-                            e_str += ("Error in line %i: Bad variable "
-                                      "assignment syntax; multiple variable "
-                                      "names given\n" % (i + 1))
-                        else:
-                            e_str += ("Error in line %i: Bad variable "
-                                      "assignment syntax; no variable name "
-                                      "given\n" % (i + 1))
-                        continue
-                    else:
-                        if split[2][0] == ' ':
-                            split[2] = split[2][1:]
-                        # Do something with var name = value
-                        cmd = split[0].strip() + '=' + split[2]
-                        interval = Same as for @reboot? *shrug*
-                    I don't know how I would run it once I have it, so it is
-                    commented out for now.
-                    """
                 # Check for special interval syntax
-                elif split[0][0] == '@':
+                if split[0][0] == '@':
                     try:
                         interval = _special_intervals[split[0]]
                     except KeyError:
@@ -187,9 +161,43 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                                   "syntax, %s\n" % (i + 1, split[0]))
                         continue
                     cmd = ' '.join(split[1:])
+
+                # Check if setting variable
+                elif '=' in ''.join(split[:5]):
+                    name, _, value = line.partition('=')
+
+                    # Check if var name is zero or multiple words
+                    name = name.strip()
+                    num_names = len(name.split())
+                    if num_names != 1:
+                        if num_names:
+                            e_str += ("Error in line %i: Bad variable "
+                                      "assignment syntax; multiple variable "
+                                      "names given\n" % (i + 1))
+                        else:
+                            e_str += ("Error in line %i: Bad variable "
+                                      "assignment syntax; no variable name "
+                                      "given\n" % (i + 1))
+                    else:
+                        if value[0] == ' ':
+                            value = value[1:]
+
+                        os.environ[name] = value
+                    continue
+
                 else:
-                    interval = ' '.join(split[:5])
-                    cmd = ' '.join(split[5:])
+                    # Check if five or six time/date fields
+                    if (len(split) > 5 and
+                            not any(c.isalpha() for c in split[5]) and
+                            ('*' in split[5] or
+                             any(c.isdigit() for c in split[5])) and
+                            split[5][0] != '/'):
+                        
+                        interval = ' '.join(split[:6])
+                        cmd = ' '.join(split[6:])
+                    else:
+                        interval = ' '.join(split[:5])
+                        cmd = ' '.join(split[5:])
 
                 # Check for un-escaped %s in command
                 index = cmd.find('%')
@@ -264,6 +272,7 @@ def main():
     # If no user is specified, set to current user (euid or uid?)
     else:
         opts.usr = (usr_euid, pwd.getpwuid(usr_euid).pw_name)
+
     check_permissions(opts.usr, usr_euid)
 
     # Perform rm operation

@@ -19,50 +19,56 @@ that comments are not allowed on the same line as cron commands, since they
 will be taken to be part of the command. Similarly, comments are not allowed
 on the same line as environment variable settings.
 .PP
-An active line in a crontab must be a cron command; environment settings are
-are not supported. The crontab file is parsed in a relatively random order.
-.\"An environment setting is of the form,
-.\".PP
-.\"    name = value
-.\".PP
-.\"where the spaces around the equal-sign (=) are optional, and any subsequent
-.\"non-leading spaces in
-.\".I value
-.\"will be part of the value assigned to
-.\".IR name .
+An active line in a crontab will be either an environment setting or a cron
+command. The crontab file is parsed from top to bottom, however the environment
+settings are preprocessed. This means that only the last value assigned will be
+used for all commands, regardless of any previous settings. An environment
+setting is of the form,
+.PP
+    name = value
+.PP
+where the spaces around the equal-sign (=) are optional, and any subsequent
+non-leading spaces in
+.I value
+will be part of the value assigned to
+.IR name .
 .\"The
 .\".I value
 .\"string may be placed in quotes (single or double, but matching) to preserve
 .\"leading or trailing blanks. To define an empty variable, quotes
 .\".B must
-.\"be used. The  
-.\".I value
-.\"string is 
-.\".B not
-.\"parsed for environmental substitutions or replacement of variables, thus lines
-.\"like
-.\".PP
-.\"    PATH = $HOME/bin:$PATH
-.\".PP
-.\"will not work as you might expect. And neither will this work
-.\".PP
-.\"    A=1
-.\"    B=2
-.\"    C=$A $B
-.\".PP
-.\"There will not be any subsitution for the defined variables in the last value.
-.\".PP
-.\"An alternative for setting up the commands path is using the fact that many
-.\"shells will treat the tilde(~) as substitution of $HOME, so if you use 
-.\".I bash
-.\"for your tasks you can use this:
-.\".PP
-.\"     SHELL=/bin/bash
-.\"     PATH=~/bin:/usr/bin/:/bin
+.\"be used.
+The  
+.I value
+string is 
+.B not
+parsed for environmental substitutions or replacement of variables, thus lines
+like
+.PP
+    PATH = $HOME/bin:$PATH
+.PP
+will not work as you might expect. And neither will this work
+.PP
+    A=1
+    B=2
+    C=$A $B
+.PP
+There will not be any subsitution for the defined variables in the last value.
+.PP
+An alternative for setting up the commands path is using the fact that many
+shells will treat the tilde(~) as substitution of $HOME, so if you use 
+.I bash
+for your tasks you can use this:
+.PP
+     SHELL=/bin/bash
+     PATH=~/bin:/usr/bin/:/bin
 .PP
 .\"The format of a cron command is very much the V7 standard, with a number of
-.\"upward-compatible extensions.
-Each line has five or six time and date fields, followed by a command.
+.\"upward-compatible extensions. Commented out because I don't know what V7 is.
+Each line has five or six time and date fields, followed by a command. If the
+sixth field has no alphabetical letters, has either an asterik (*) or number,
+and does not begin with a forward slash (/), it will be processed as a time
+field. Otherwise, it will be processed as part of the command.
 .PP
 Commands are executed by megacrond(8) when the minute, hour, and month of year
 fields match the current time, and when at least one of the two day fields (day
@@ -71,7 +77,7 @@ megacrond(8) examines cron entries once every 15 seconds. The time and date
 fields are:
 .IP
 .ta 1.5i
-field allowed values
+field	allowed values
 .br
 -----	--------------
 .br
@@ -85,7 +91,7 @@ month	1-12 (or names, see below)
 .br
 day of week	0-7 (0 or 7 is Sun, or use names)
 .br
-second         0-59 (optional)    
+second	0-59 (optional)
 .PP
 A field may be an asterisk (*), which always stands for ``first\-last''.
 .PP
@@ -240,7 +246,9 @@ megacron(8), megacrontab(1), megacrond(8), megacron-status(1)
 .SH LIMITATIONS
 Two main limitations are that
 .B megacron
-cannot process environment variable assignment, and cannot do commands @reboot.
+cannot process multiple settings of the same environment variable well (it
+only uses the last definition for all commands), and it does not recognize
+@reboot as an interval.
 .SH BUGS
 .B megacrontab
 is part of the open source project Megacron. Report any bugs to the project's
