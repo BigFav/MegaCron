@@ -1,0 +1,38 @@
+.\" Manpage for megacron
+.\" Let us know about suggestions or errors at https://github.com/BigFav/MegaCron
+.TH man 8 "18 May 2014" "1.0" "megacrond man page"
+.SH NAME
+megacrond \- a distributed cron system - daemon
+.SH SYNOPSIS
+.B megacrond [\-f] &
+
+.SH DESCRIPTION
+
+.B megacrond
+is the daemon that executes the megacron commands. 
+It must run on all workers and the main server, and must also be executed with root privileges. 
+
+.B megacrond 
+executes the jobs and schedules that have been loaded with 
+.B megacrontab.
+Note that cron tables must be loaded with this utility and inputting into directories will not work since the schedules as processed by megacron are not raw text.
+
+.B megacrond 
+is configured by /etc/megacron.conf. 
+The conf file specifies the location of the database, which by default is /var/lib/megacron/db.p.
+
+The daemon claims a process ID lock on /var/run/megacron.pid in order to identify the running daemon.
+
+.B megacrond
+checks for jobs to run every minute.
+
+.SH OPTIONS
+.B megacrond 
+.TP
+.B \-f
+Runs the megacron daemon in the foreground
+
+.SH SEE ALSO
+megacron(8), megacrontab(1), megacrontab(5), cron(8), crontab(1), crontab(5), nfs(5)
+.SH AUTHOR
+Megacron Team (https://github.com/BigFav/MegaCron), Wikimedia Foundation
