@@ -20,10 +20,9 @@ will be taken to be part of the command. Similarly, comments are not allowed
 on the same line as environment variable settings.
 .PP
 An active line in a crontab will be either an environment setting or a cron
-command. The crontab file is parsed from top to bottom, however the environment
-settings are preprocessed. This means that only the last value assigned will be
-used for all commands, regardless of any previous settings. An environment
-setting is of the form,
+command.  The crontab file is parsed from top to bottom, so any environment
+settings will affect only the cron commands below them in the file.
+An environment setting is of the form,
 .PP
     name = value
 .PP
@@ -64,7 +63,8 @@ for your tasks you can use this:
      PATH=~/bin:/usr/bin/:/bin
 .PP
 .\"The format of a cron command is very much the V7 standard, with a number of
-.\"upward-compatible extensions. Commented out because I don't know what V7 is.
+.\"upward-compatible extensions.
+.\"Commented out because I don't know what V7 is.
 Each line has five or six time and date fields, followed by a command. If the
 sixth field has no alphabetical letters, has either an asterik (*) or number,
 and does not begin with a forward slash (/), it will be processed as a time
@@ -132,7 +132,7 @@ plus every Friday. One can, however, achieve the desired result by adding a
 test to the command (see the last example in EXAMPLE CRON FILE below).
 
 .PP
-Instead of the first five fields, one of eight special strings may appear:
+Instead of the first five fields, one of seven special strings may appear:
 .IP
 .ta 1.5i
 string	meaning
@@ -166,8 +166,8 @@ The following lists an example of a user crontab file.
 
 .nf
 
-.\"# use /bin/bash to run commands, instead of the default /bin/sh
-.\"SHELL=/bin/bash
+# use /bin/bash to run commands, instead of the default /bin/sh
+SHELL=/bin/bash
 .\"# mail any output to `paul', no matter whose crontab this is
 .\"MAILTO=paul
 #
@@ -242,17 +242,16 @@ editor, if VISUAL is not set.
 .br
 /etc/megacron.conf
 .SH SEE ALSO
-megacron(8), megacrontab(1), megacrond(8), megacron-status(1)
+megacrontab(1), megacrond(8), megacron(8), megacron-status(1)
 .SH LIMITATIONS
 Two main limitations are that
-.B megacron
-cannot process multiple settings of the same environment variable well (it
-only uses the last definition for all commands), and it does not recognize
-@reboot as an interval.
+.B megacrontab
+processes quotes as part of the value in an environment setting (thus they
+cannot be set to empty), and it does not recognize @reboot as an interval.
 .SH BUGS
 .B megacrontab
 is part of the open source project Megacron. Report any bugs to the project's
-GitHub 
+GitHub
 .br
 .URL "https://github.com/BigFav/MegaCron" "page" "."
 .SH HISTORY

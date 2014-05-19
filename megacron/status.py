@@ -1,8 +1,9 @@
+import argparse
 import sys
 from datetime import datetime
-import argparse
 
 from megacron import api
+
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -88,3 +89,6 @@ def main():
         get_next_schedule_time()
     if args.all or args.numusers:
         get_num_users()
+    if not (args.all or args.workerstatus or args.numjobs or
+            args.numscheds or args.nextsched or args.numusers):
+        parser.print_usage()

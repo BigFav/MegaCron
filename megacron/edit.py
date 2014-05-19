@@ -192,7 +192,7 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                             ('*' in split[5] or
                              any(c.isdigit() for c in split[5])) and
                             split[5][0] != '/'):
-                        
+                        # Could print warning that using 6 fields
                         interval = ' '.join(split[:6])
                         cmd = ' '.join(split[6:])
                     else:
@@ -200,12 +200,16 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                         cmd = ' '.join(split[5:])
 
                 # Check for un-escaped %s in command
+                job_input = None
                 index = cmd.find('%')
                 while (index != -1) and (cmd[index-1] == '\\'):
                     index = cmd.find('%', index + 1)
                 if index != -1:
-                    cmd = cmd[:index] + "<<<\n" + sub(r"((?<!\\))%", r"\1\n",
-                                                      cmd[index+1:])
+                    job_input = (sub(r"((?<!\\))%", r"\1\n", cmd[index+1:]).
+                                 replace("\%", "%"))
+                    cmd = cmd[:index]
+                cmd = cmd.replace("\%", "%")
+
                 # Ensure the crontab line is valid
                 try:
                     croniter(interval)
@@ -227,13 +231,17 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                         if line in old_tab:
                             for old_job in old_jobs:
                                 if (old_job.interval == interval and
-                                        old_job.command == cmd):
+                                        old_job.command == cmd and
+                                        old_job.job_input == job_input and
+                                        old_job.environment == os.environ):
                                     job = old_job
                                     old_jobs.remove(old_job)
                                     break
                         if not job:
                             old_tab.discard(line)
-                            job = api.Job(interval, cmd, uid, datetime.now())
+                            job = api.Job(interval, cmd, uid,
+                                          os.environ.copy(), job_input,
+                                          datetime.now())
                         jobs.append(job)
     # Prompt user to edit crontab on error
     if e_str:

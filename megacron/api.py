@@ -11,9 +11,12 @@ FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 
 
 class Job:
-    def __init__(self, interval, command, user_id, last_time_run, _id=None):
+    def __init__(self, interval, command, user_id,
+                 environment, job_input, last_time_run, _id=None):
         self.interval = interval
         self.command = command
+        self.environment = environment
+        self.job_input = job_input
         self.user_id = user_id
         self.last_time_run = last_time_run
         self._id = _id
