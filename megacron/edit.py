@@ -209,7 +209,7 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                             ('*' in split[5] or
                              any(c.isdigit() for c in split[5])) and
                             split[5][0] != '/'):
-                        # Could print warning that using 6 fields
+                        # Could print warning that using 6 time fields
                         interval = ' '.join(split[:6])
                         cmd = ' '.join(split[6:])
                     else:
