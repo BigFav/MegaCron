@@ -157,6 +157,7 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
     e_str = ""
     jobs = []
     crontab = []
+    environs = api.get_environs(uid)
     old_jobs = api.get_jobs_for_user(uid)
     with open(tb_file, 'r') as tab:
         for i, line in enumerate(tab):
@@ -256,9 +257,13 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                                     break
                         if not job:
                             old_tab.discard(line)
-                            job = api.Job(interval, cmd, uid,
-                                          os.environ.copy(), job_input,
-                                          datetime.now())
+                            try:
+                                index = environs.index(os.environ)
+                            except ValueError:
+                                index = len(environs)
+                                environs.append(os.environ.copy())
+                            job = api.Job(interval, cmd, uid, index,
+                                          job_input, datetime.now())
                         jobs.append(job)
     # Prompt user to edit crontab on error
     if e_str:
@@ -278,6 +283,7 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
         os.unlink(tb_file)
 
     api.set_crontab('\n'.join(crontab), uid)
+    api.set_environs(environs, uid)
     api.set_jobs(jobs, uid)
     return True
 

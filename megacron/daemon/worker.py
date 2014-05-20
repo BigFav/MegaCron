@@ -63,6 +63,7 @@ def _run_schedules(events):
 def _run_command(command, uid, env, job_input):
     passwd = pwd.getpwuid(uid)
 
+    env = get_environ(uid)[env]
     env['HOME'] = passwd.pw_dir
     env['LOGNAME'] = passwd.pw_name
     env['USER'] = passwd.pw_name

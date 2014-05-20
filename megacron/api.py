@@ -141,12 +141,22 @@ def destroy_worker(worker):
 
 def get_crontab(user_id):
     with OpenFileLocked(write=False) as file:
-        return file['crontab'][user_id]
+        return file['crontabs'][user_id]
 
 
 def set_crontab(crontab, user_id):
     with OpenFileLocked(write=True) as file:
-        file['crontab'][user_id] = crontab
+        file['crontabs'][user_id] = crontab
+
+
+def get_environs(user_id):
+    with OpenFileLocked(write=False) as file:
+        return file['environs'][user_id]
+
+
+def set_environs(environs, user_id):
+    with OpenFileLocked(write=True) as file:
+        file['environs'][user_id] = environs
 
 
 class OpenFileLocked:
@@ -175,7 +185,8 @@ class OpenFileLocked:
             self.data = pickle.load(self._file)
         except EOFError:
             self.data = {
-                'crontab': defaultdict(bool),
+                'crontabs': defaultdict(bool),
+                'environs': defaultdict(list),
                 'jobs': [],
                 'schedules': [],
                 'workers': deque(),
