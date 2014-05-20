@@ -97,12 +97,12 @@ def check_permissions(opts_usr, usr_euid):
                          "thus is not authorized to use megacrontab.\nSee "
                          "megacrontab(1) for more information." % opts_usr[1])
     ''' Finally check the default, all or just root?
-    elif not DEFAULT_ALLOWANCE and (usr_euid != 0):
+    elif not DEFAULT_ALLOWANCE and usr_euid:
         sys.exit("Access denied. Only root is authorized to use megacrontab.\n"
                  "See megacrontab(1) for more information.")
     '''
     # Check if current user has access to the current crontab
-    if (usr_euid != 0) and (opts_usr[0] != usr_euid):
+    if usr_euid and (opts_usr[0] != usr_euid):
         sys.exit("Access denied. You do not have permission to edit %s's "
                  "crontab." % opts_usr[1])
 
