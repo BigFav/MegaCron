@@ -9,6 +9,11 @@ from re import compile
 
 from croniter import croniter
 from megacron import api
+from megacron import config
+
+#ALLOW_FILE = config.get_option("Database", "shared_filesystem_")
+#DENY_FILE = config.get_option("Database", "shared_filesystem_")
+#DEFAULT_ALLOWANCE = config.get_option("Database", "shared_filesystem_")
 
 
 _input = raw_input if sys.version_info < (3,) else input
@@ -91,7 +96,11 @@ def check_permissions(opts_usr, usr_euid):
                 sys.exit("Access denied. The user %s is in /etc/cron.deny, "
                          "thus is not authorized to use megacrontab.\nSee "
                          "megacrontab(1) for more information." % opts_usr[1])
-
+    ''' Finally check the default, all or just root?
+    elif not DEFAULT_ALLOWANCE and (usr_euid != 0):
+        sys.exit("Access denied. Only root is authorized to use megacrontab.\n"
+                 "See megacrontab(1) for more information.")
+    '''
     # Check if current user has access to the current crontab
     if (usr_euid != 0) and (opts_usr[0] != usr_euid):
         sys.exit("Access denied. You do not have permission to edit %s's "
