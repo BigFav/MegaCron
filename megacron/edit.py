@@ -14,8 +14,8 @@ from megacron import api
 _input = raw_input if sys.version_info < (3,) else input
 _quoted_value = compile(r"((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)\1")
 _unescaped_pct = compile(r"((?<!\\))%")
-_escaped_pct = compile(r"\\%(?=([^'\"\\]*(\\.|[\"']([^\"'\\]*\\.)*[^'\"\\]*
-                                          [\"']))*[^\"']*$)")
+_escaped_pct = compile(r"\\%(?=([^'\"\\]*(\\.|[\"']([^\"'\\]*\\.)*[^'\"\\]*"
+                       "[\"']))*[^\"']*$)")
 _special_intervals = {"@yearly": "0 0 1 1 *", "@annually": "0 0 1 1 *",
                       "@monthly": "0 0 1 * *", "@weekly": "0 0 * * 0",
                       "@daily": "0 0 * * *", "@midnight": "0 0 * * *",
@@ -213,10 +213,10 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                 while (index != -1) and (cmd[index-1] == '\\'):
                     index = cmd.find('%', index + 1)
                 if index != -1:
-                    job_input = _escaped_pct.sub(r'%',_unescaped_pct.sub(
-                                                      r"\1\n", cmd[index+1:]))
+                    job_input = _escaped_pct.sub('%', _unescaped_pct.sub(
+                                                 r"\1\n", cmd[index+1:]))
                     cmd = cmd[:index]
-                cmd = _escape_pct.sub(r'%',cmd)
+                cmd = _escaped_pct.sub('%', cmd)
 
                 # Ensure the crontab line is valid
                 try:
