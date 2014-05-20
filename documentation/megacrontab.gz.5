@@ -31,12 +31,12 @@ non-leading spaces in
 .I value
 will be part of the value assigned to
 .IR name .
-.\"The
-.\".I value
-.\"string may be placed in quotes (single or double, but matching) to preserve
-.\"leading or trailing blanks. To define an empty variable, quotes
-.\".B must
-.\"be used.
+The
+.I value
+string may be placed in quotes (single or double, but matching) to preserve
+leading or trailing blanks. To define an empty variable, quotes
+.B must
+be used.
 The  
 .I value
 string is 
@@ -243,6 +243,13 @@ editor, if VISUAL is not set.
 /etc/megacron.conf
 .SH SEE ALSO
 megacrontab(1), megacrond(8), megacron(8), megacron-status(1)
+.SH BUGS
+When a percent sign is escaped within double or single quotes (ex: "\\%"),
+its backslash should remain, even if within nested quotes. However, the
+backslash gets removed if within nested quotes (ex: "'\\%'" -> "'%'"); this
+scales as such. A way to work around this is to effectively place one more
+backslash before it (ex: "'\\\\%'" -> "'\\%'"). Note: given that backslash is
+an escape character it may take typing two more in order to add one more.
 .SH LIMITATIONS
 Two main limitations are that
 .B megacrontab
