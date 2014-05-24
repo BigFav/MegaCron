@@ -17,7 +17,7 @@ from megacron import config
 
 
 _input = raw_input if sys.version_info < (3,) else input
-_quoted_value = compile(r"((?<![\\])['\"])((?:.(?!(?<![\\])\1))*.?)\1")
+_quoted_value = compile(r"((?<![\\])['\"])((?:.(?!(?<![\\])\\1))*.?)\1")
 _unescaped_pct = compile(r"((?<!\\))%")
 _escaped_pct = compile(r"\\%(?=([^'\"\\]*(\\.|[\"']([^\"'\\]*\\.)*[^'\"\\]*"
                        "[\"']))*[^\"']*$)")
