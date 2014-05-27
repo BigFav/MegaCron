@@ -17,7 +17,6 @@ from megacron import config
 
 
 _input = raw_input if sys.version_info < (3,) else input
-_quoted_value = compile(r"((?<![\\])['\"])((?:.(?!(?<![\\])\\1))*.?)\1")
 _unescaped_pct = compile(r"((?<!\\))%")
 _escaped_pct = compile(r"\\%(?=([^'\"\\]*(\\.|[\"']([^\"'\\]*\\.)*[^'\"\\]*"
                        "[\"']))*[^\"']*$)")
@@ -193,12 +192,16 @@ def process_edits(uid, tb_file, using_local_file, old_tab):
                                       "assignment syntax; no variable name "
                                       "given\n" % (i + 1))
                     else:
-                        if value[0] == ' ':
-                            value = value[1:]
-                        if (value[0] == "'") or (value[0] == '"'):
-                            temp = _quoted_value.findall(value)
-                            if len(temp) == 1:
-                                value = temp[0][1]
+                        value = value.strip()
+                        if (((value[0] == "'") or (value[0] == '"')) and
+                           (value[-1] == value[0])):
+                            # if properly wrapped in quotes, check if escaped
+                            for i, char in enumerate(reversed(value[:-1])):
+                                if char != '\\':
+                                    i += 1
+                                    break
+                            if i % 2 != 0:
+                                value = value[1:-1]
 
                         os.environ[name] = value
                     continue
