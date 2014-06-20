@@ -26,26 +26,6 @@ _special_intervals = {"@yearly": "0 0 1 1 *", "@annually": "0 0 1 1 *",
                       "@hourly": "0 * * * *"}
 
 
-def _print_usage(self, file=None):
-    if file is None:
-        file = sys.stdout
-    # Only inserted line to adjust printed usage to fit implicit rule
-    usage_str = self.format_usage().replace("[-e | -r | -l | file]",
-                                            "{-e | -r | -l | file}", 1)
-    self._print_message(usage_str, file)
-argparse.ArgumentParser.print_usage = _print_usage
-
-
-def _print_help(self, file=None):
-    if file is None:
-        file = sys.stdout
-    # Only inserted line to adjust printed usage to fit implicit rule
-    help_str = self.format_help().replace("[-e | -r | -l | file]",
-                                          "{-e | -r | -l | file}", 1)
-    self._print_message(help_str, file)
-argparse.ArgumentParser.print_help = _print_help
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Gets options for crontab "
                                                  "editor.")
@@ -56,8 +36,8 @@ def parse_args():
                         help="Modifies the -r option to prompt the user for a "
                              "'y/n' response before removing the crontab.")
 
-    # Cannot have multiple commands at once
-    commands = parser.add_mutually_exclusive_group()
+    # Must have one and only one command
+    commands = parser.add_mutually_exclusive_group(required=True)
     commands.add_argument('-e', action="store_true", dest="edit",
                           help="Edit the current crontab using the editor "
                                "specified by the VISUAL or EDITOR "
@@ -71,12 +51,7 @@ def parse_args():
     commands.add_argument('file', nargs='?', default=False,
                           help="File to overwrite current crontab.")
 
-    opts = parser.parse_args()
-    # Ensure at least one command was selected, extra implicit rule
-    if not (opts.file or opts.edit or opts.lst or opts.rm):
-        parser.error("No command requested, add -e, -r, -l, or a file name.")
-
-    return opts
+    return parser.parse_args()
 
 
 def check_permissions(opts_usr, usr_euid):
