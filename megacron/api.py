@@ -11,9 +11,12 @@ FILE_NAME = config.get_option("Database", "shared_filesystem_path")
 
 
 class Job:
-    def __init__(self, interval, command, user_id, last_time_run, _id=None):
+    def __init__(self, interval, command, user_id,
+                 environment, job_input, last_time_run, _id=None):
         self.interval = interval
         self.command = command
+        self.environment = environment
+        self.job_input = job_input
         self.user_id = user_id
         self.last_time_run = last_time_run
         self._id = _id
@@ -138,12 +141,12 @@ def destroy_worker(worker):
 
 def get_crontab(user_id):
     with OpenFileLocked(write=False) as file:
-        return file['crontab'][user_id]
+        return file['crontabs'][user_id]
 
 
 def set_crontab(crontab, user_id):
     with OpenFileLocked(write=True) as file:
-        file['crontab'][user_id] = crontab
+        file['crontabs'][user_id] = crontab
 
 
 class OpenFileLocked:
@@ -172,7 +175,7 @@ class OpenFileLocked:
             self.data = pickle.load(self._file)
         except EOFError:
             self.data = {
-                'crontab': defaultdict(bool),
+                'crontabs': defaultdict(bool),
                 'jobs': [],
                 'schedules': [],
                 'workers': deque(),

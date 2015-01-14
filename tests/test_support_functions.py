@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
-import random
-import string
 import os
+import random
 from datetime import datetime
 
 from megacron import api
@@ -53,7 +52,7 @@ def check_schedule_fields(self, schedules_list, test_schedules):
 
 
 def check_heartbeat_value(self, worker, previous_heartbeats,
-                          checkpoint1, checkpoint2, current1):
+                          checkpoint1, checkpoint2, current):
     self.assertTrue(worker.heartbeat > checkpoint1 and
                     worker.heartbeat < checkpoint2 and
                     worker.heartbeat > previous_heartbeats[current] and
@@ -88,11 +87,13 @@ def create_test_tab(num_of_jobs, uid):
     with open(TAB_FILE, 'r') as tab:
         for job in tab:
             first_char = job[0]
-            if first_char != '\n':
-                tmp = job.strip().split(' ')
-                interval = string.joinfields(tmp[:5], ' ')
-                cmd = string.joinfields(tmp[5:], ' ')
-                test_jobs.append(api.Job(interval, cmd, uid, datetime.now()))
+            if first_char != '\n' and first_char != '#':
+                tmp = job.strip().split()
+                interval = ' '.join(tmp[:5])
+                cmd = ' '.join(tmp[5:])
+
+                test_jobs.append(api.Job(interval, cmd, uid, os.environ.copy(),
+                                         None, datetime.now()))
     return test_jobs
 
 

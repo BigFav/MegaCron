@@ -1,6 +1,10 @@
 .\" Manpage for megacrontab.
 .\" Contact mpelletier@wikimedia.org to correct errors or typos.
-.TH MEGACRONTAB 1 "7 May 2014" "0.4.1" "Wikimedia"
+.de URL
+\\$2 \(laURL:\\$1\(ra\\$3
+..
+.if \n[.g] .mso www.tmac
+.TH MEGACRONTAB 1 "18 May 2014" "0.4.1" "Wikimedia"
 .SH NAME
 megacrontab \- maintain crontab files for individual users
 .SH SYNOPSIS
@@ -8,11 +12,40 @@ megacrontab \- maintain crontab files for individual users
 [\fB-h\fR]
 [\fB-u\fR \fIUSR\fR]
 [\fB-i\fR]
-{\fB-e\fR | \fB-r\fR | \fB-l\fR | \fIfile\fR}
+{\fB-e\fR | \fB-l\fR | \fB-r\fR | \fIfile\fR}
 .SH DESCRIPTION
+.PP
 .B megacrontab
 is the program used to install, deinstall or list the tables used to drive the
-megacrond(8) daemon.
+megacrond(8) daemon. Each user's crontab is stored in serialized form in a
+file whose location and name are defined in
+.I /etc/megacron.conf
+as the
+.I shared_filesystem_path
+variable.
+.PP
+If the
+.I /etc/cron.allow
+file exists, then you must be listed therein in order to be allowed to use this
+command. If the
+.I /etc/cron.allow
+file does not exist but the
+.I /etc/cron.deny
+file does exist, then you must not be listed in the
+.I /etc/cron.deny
+file in order to use this command.
+.PP
+If neither file exists, all users are allowed to create a crontab.
+.PP
+If both files exist then
+.I /etc/cron.allow
+takes precedence. This means that
+.I /etc/cron.deny
+is not considered and your user must be listed in
+.I /etc/cron.allow
+in order to be able to use the crontab.
+.PP
+These files need to be accessible for all users on the NFS.
 .SH OPTIONS
 .TP
 \fB-h\fR, \fB--help\fR
@@ -22,10 +55,11 @@ Displays help message.
 \fB-u\fR \fIUSR\fR
 .br
 Specifies the name of the user whose crontab is to be used (when listing) or
-modified (when editing). If this option is not given, crontab examines "your"
-crontab, i.e., the crontab of the person executing the command. Note that su(8)
-can confuse crontab and that if you are running inside of su(8) you should
-always use the
+modified (when editing). In order to operate on another user's crontab, you
+must be the root administrative user. If this option is not given, crontab
+examines "your" crontab, i.e., the crontab of the person executing the command.
+Note that su(8) can confuse crontab and that if you are running inside of su(8)
+you should always use the
 .B -u
 option for safety's sake.
 .TP
@@ -50,9 +84,43 @@ option is given.
 .I file
 .br
 A crontab file name to replace the current crontab.
+.SH DIAGNOSTICS
+A usage message appears if ran with a bad command line.
+.PP
+In addition, a error message appears for each bad CRON expression in the
+current crontab when attempting to install it.
+.SH ENVIRONMENT VARIABLES
+.TP
+.B VISUAL
+.br
+Specify the
+.B megacrontab
+editor using VISUAL.
+.TP
+.B EDITOR
+.br
+Uses EDITOR as the
+.B megacrontab
+editor, if VISUAL is not set.
+.SH FILES
+/etc/cron.allow
+.br
+/etc/cron.deny
+.br
+/etc/megacron.conf
 .SH SEE ALSO
-megacron(8), megacrond(8)
+megacrontab(5), megacron(8), megacrond(8), megacron-status(1)
 .SH BUGS
-No known bugs.
+.B megacrontab
+is part of the open source project Megacron. Report any bugs to the project's
+GitHub 
+.br
+.URL "https://github.com/BigFav/MegaCron" "page" "."
+.SH HISTORY
+.B megacrontab
+is based on crontab(1) and crontab(5).
 .SH AUTHOR
-Favian Contreras <fnc4@cornell.edu> is the original creator of this manual page. Contact mpelletier@wikimedia.org to resolve any issues.
+Favian Contreras <fnc4@cornell.edu> is the original creator of this manual
+page. The project leader is Marc-Andre Pelletier
+.br
+<mpelletier@wikimedia.org>.
